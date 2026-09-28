@@ -1,0 +1,1872 @@
+/* =========================================================
+   INTERVIEW PAGE
+========================================================= */
+
+.interview-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(37, 99, 235, 0.07),
+      transparent 35%
+    ),
+    #f7f9fc;
+
+  color: #111827;
+  font-family: "DM Sans", sans-serif;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.interview-header {
+  min-height: 78px;
+  padding: 0 5%;
+
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e5eaf1;
+
+  box-sizing: border-box;
+}
+
+.interview-header .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-family: "Manrope", sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  color: white;
+
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #06b6d4
+  );
+
+  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.15);
+}
+
+.logo-plus {
+  color: #2563eb;
+}
+
+.interview-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #64748b;
+
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.status-dot,
+.record-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #10b981;
+
+  box-shadow:
+    0 0 9px rgba(16, 185, 129, 0.5);
+}
+
+.question-count {
+  color: #8995a7;
+
+  font-size: 10px;
+
+  margin-left: auto;
+
+  white-space: nowrap;
+}
+
+.question-count strong {
+  color: #1e293b;
+  margin: 0 5px;
+}
+
+
+/* =========================================================
+   VOICE TOGGLE
+========================================================= */
+
+.voice-toggle {
+  border: 1px solid #dbe3ef;
+
+  background: #ffffff;
+  color: #334155;
+
+  padding: 9px 14px;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    all 0.25s ease;
+
+  white-space: nowrap;
+}
+
+.voice-toggle:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+
+  transform: translateY(-2px);
+}
+
+.voice-toggle.voice-on {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+
+  animation: voiceOn 0.35s ease;
+}
+
+.voice-toggle.voice-off {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.voice-toggle:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.progress-wrapper {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 7px;
+}
+
+.progress-info span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  color: #64748b;
+}
+
+.progress-info strong {
+  font-size: 11px;
+  color: #2563eb;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+
+  background: #e5e7eb;
+
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar span {
+  display: block;
+
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    #2563eb,
+    #06b6d4
+  );
+
+  border-radius: 20px;
+
+  transition: width 0.5s ease;
+}
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+.interview-timer {
+  color: #334155;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  transition: all 0.3s ease;
+}
+
+.interview-timer.warning {
+  color: #dc2626;
+
+  animation:
+    timerWarning 1s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.interview-container {
+  width: 90%;
+  max-width: 1250px;
+
+  min-height: calc(100vh - 140px);
+
+  margin: auto;
+
+  padding: 55px 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    330px;
+
+  gap: 55px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MAIN INTERVIEW
+========================================================= */
+
+.interview-main {
+  text-align: center;
+
+  padding-top: 10px;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   AI STATE
+========================================================= */
+
+.ai-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #2563eb;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.5px;
+
+  animation: statusFade 0.35s ease;
+
+  transition: all 0.3s ease;
+}
+
+
+/* =========================================================
+   AI AVATAR
+========================================================= */
+
+.ai-avatar {
+  width: 220px;
+  height: 220px;
+
+  margin: 35px auto 30px;
+
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  transition: transform 0.3s ease;
+}
+
+.ai-avatar:hover {
+  transform: scale(1.03);
+}
+
+.avatar-ring {
+  position: absolute;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(37, 99, 235, 0.15);
+
+  animation: orbit 8s linear infinite;
+}
+
+.ring-one {
+  width: 220px;
+  height: 130px;
+
+  transform: rotate(25deg);
+}
+
+.ring-two {
+  width: 260px;
+  height: 150px;
+
+  transform: rotate(-30deg);
+
+  animation-duration: 5s;
+  animation-direction: reverse;
+}
+
+.avatar-core {
+  width: 135px;
+  height: 135px;
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  color: #2563eb;
+
+  font-size: 42px;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffffff,
+      #edf6ff
+    );
+
+  border: 1px solid #afd1f3;
+
+  box-shadow:
+    0 0 55px rgba(37, 99, 235, 0.15),
+    inset 0 0 30px rgba(37, 99, 235, 0.08);
+
+  animation:
+    aiPulse 2.2s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   INTERVIEW CONTEXT
+========================================================= */
+
+.interview-context {
+  margin-bottom: 12px;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+
+  animation: contextFade 0.4s ease;
+}
+
+
+/* =========================================================
+   QUESTION
+   IMPORTANT:
+   No opacity animation here.
+   Keeps question fully visible.
+========================================================= */
+
+.interview-main h1 {
+  max-width: 720px;
+
+  margin: auto;
+
+  font-family: "Manrope", sans-serif;
+
+  font-size: clamp(32px, 4vw, 52px);
+
+  font-weight: 650;
+
+  line-height: 1.1;
+
+  letter-spacing: -2px;
+
+  color: #172033;
+
+  opacity: 1;
+
+  visibility: visible;
+
+  text-shadow:
+    0 1px 1px rgba(15, 23, 42, 0.02);
+
+  animation:
+    questionSlide 0.45s ease both;
+}
+
+.interview-main h1 span {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #2563eb;
+
+  font-weight: 600;
+
+  opacity: 1;
+
+  visibility: visible;
+}
+
+
+/* =========================================================
+   QUESTION HINT
+========================================================= */
+
+.question-hint {
+  max-width: 500px;
+
+  margin: 18px auto 30px;
+
+  color: #6b778b;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+
+  opacity: 1;
+
+  animation:
+    hintFade 0.5s ease both;
+}
+
+
+/* =========================================================
+   ANSWER BOX
+========================================================= */
+
+.answer-box {
+  max-width: 720px;
+
+  margin: auto;
+
+  padding: 18px;
+
+  border: 1px solid #dfe6ef;
+
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  box-shadow:
+    0 15px 45px rgba(15, 23, 42, 0.06);
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.answer-box:focus-within {
+  border-color: #bfdbfe;
+
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.06),
+    0 15px 45px rgba(15, 23, 42, 0.06);
+}
+
+.answer-box textarea {
+  width: 100%;
+
+  min-height: 75px;
+
+  resize: vertical;
+
+  border: 0;
+
+  outline: none;
+
+  padding: 8px;
+
+  color: #334155;
+
+  font-family: "DM Sans", sans-serif;
+
+  font-size: 12px;
+
+  background: transparent;
+
+  box-sizing: border-box;
+
+  transition:
+    background 0.2s ease;
+}
+
+.answer-box textarea:focus {
+  background: #ffffff;
+}
+
+.answer-box textarea::placeholder {
+  color: #a0aaba;
+
+  transition:
+    opacity 0.2s ease;
+}
+
+.answer-box textarea:focus::placeholder {
+  opacity: 0.5;
+}
+
+
+/* =========================================================
+   ANSWER CONTROLS
+========================================================= */
+
+.answer-controls {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  border-top: 1px solid #edf0f4;
+
+  padding-top: 15px;
+}
+
+.mic-button {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  background: #edf5ff;
+
+  color: #2563eb;
+
+  cursor: pointer;
+
+  position: relative;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mic-button:hover {
+  transform: translateY(-2px);
+}
+
+.mic-button.recording {
+  transform: scale(1.05);
+
+  border-color: #dc2626;
+
+  color: #dc2626;
+
+  background: #fef2f2;
+
+  box-shadow:
+    0 0 0 6px rgba(220, 38, 38, 0.08);
+
+  animation:
+    micPulse 1.2s infinite;
+}
+
+.mic-button.recording::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -5px;
+
+  border-radius: inherit;
+
+  border: 1px solid rgba(220, 38, 38, 0.25);
+
+  animation:
+    recordingRing 1.2s ease-out infinite;
+}
+
+.recording-text {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #8995a7;
+
+  font-size: 10px;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.active-recording {
+  color: #dc2626;
+
+  font-weight: 600;
+}
+
+.active-recording .record-dot {
+  background: #dc2626;
+
+  animation:
+    recordingPulse 1s infinite;
+}
+
+.submit-answer {
+  border: 0;
+
+  padding: 12px 17px;
+
+  border-radius: 9px;
+
+  background: #2563eb;
+
+  color: white;
+
+  font-weight: 600;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.submit-answer:hover {
+  background: #1d4ed8;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.18);
+}
+
+.submit-answer:active {
+  transform: translateY(0);
+}
+
+.submit-answer span {
+  margin-left: 12px;
+}
+
+
+/* =========================================================
+   FEEDBACK
+========================================================= */
+
+.answer-feedback {
+  max-width: 720px;
+
+  margin: 18px auto 0;
+
+  padding: 15px;
+
+  display: flex;
+
+  gap: 12px;
+
+  align-items: flex-start;
+
+  text-align: left;
+
+  border: 1px solid #d8e8ff;
+
+  border-radius: 13px;
+
+  background: #f2f7ff;
+
+  box-sizing: border-box;
+
+  animation:
+    feedbackEnter 0.45s ease;
+}
+
+.feedback-icon {
+  width: 28px;
+  height: 28px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #10b981;
+
+  color: white;
+
+  font-size: 13px;
+}
+
+.answer-feedback strong {
+  color: #1e293b;
+
+  font-size: 12px;
+}
+
+.answer-feedback p {
+  margin-top: 4px;
+
+  color: #718096;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   INTELLIGENCE PANEL
+========================================================= */
+
+.live-intelligence {
+  align-self: start;
+
+  padding: 22px;
+
+  border: 1px solid #e0e6ee;
+
+  border-radius: 19px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.07);
+
+  box-sizing: border-box;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.live-intelligence:hover {
+  transform: translateY(-2px);
+}
+
+.intelligence-heading {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.intelligence-heading span {
+  display: block;
+
+  color: #8995a7;
+
+  font-size: 8px;
+
+  letter-spacing: 1.5px;
+
+  margin-bottom: 5px;
+}
+
+.intelligence-heading strong {
+  font-family: "Manrope", sans-serif;
+
+  font-size: 15px;
+
+  color: #172033;
+}
+
+.live-badge {
+  color: #10a777 !important;
+
+  font-size: 8px !important;
+
+  letter-spacing: 0 !important;
+
+  animation:
+    livePulse 1.8s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   SESSION INFO
+========================================================= */
+
+.session-info {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.session-info div {
+  flex: 1;
+
+  padding: 11px;
+
+  border-radius: 10px;
+
+  background: #f6f9fd;
+
+  min-width: 0;
+}
+
+.session-info span {
+  display: block;
+
+  color: #8995a7;
+
+  font-size: 7px;
+
+  letter-spacing: 1px;
+
+  margin-bottom: 5px;
+}
+
+.session-info strong {
+  color: #334155;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   SCORE
+========================================================= */
+
+.live-score {
+  margin: 20px 0 30px;
+
+  padding: 18px;
+
+  border-radius: 13px;
+
+  background: #f6f9fd;
+
+  text-align: center;
+}
+
+.live-score > span {
+  color: #8995a7;
+
+  font-size: 8px;
+
+  letter-spacing: 1.2px;
+}
+
+.live-score strong {
+  display: block;
+
+  margin: 8px 0;
+
+  font-family: "Manrope", sans-serif;
+
+  font-size: 35px;
+
+  color: #2563eb;
+
+  transition: all 0.4s ease;
+}
+
+.live-score p {
+  color: #8995a7;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   METRICS
+========================================================= */
+
+.live-metrics {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.live-metric {
+  animation:
+    metricEnter 0.5s ease both;
+}
+
+.live-metric > div:first-child {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+.live-metric span {
+  color: #667085;
+
+  font-size: 10px;
+}
+
+.live-metric strong {
+  color: #94a0b2;
+
+  font-size: 10px;
+}
+
+.metric-track {
+  height: 4px;
+
+  background: #e8edf4;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.metric-track span {
+  display: block;
+
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #06b6d4
+    );
+
+  transition:
+    width 0.8s ease;
+}
+
+
+/* =========================================================
+   AI STATUS
+========================================================= */
+
+.ai-status-card {
+  display: flex;
+
+  gap: 11px;
+
+  margin-top: 28px;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  background: #f2f7ff;
+
+  animation:
+    statusCardEnter 0.5s ease;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.ai-status-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.status-icon {
+  color: #2563eb;
+
+  animation:
+    iconFloat 2s ease-in-out infinite;
+}
+
+.ai-status-card span {
+  display: block;
+
+  color: #8995a7;
+
+  font-size: 7px;
+
+  letter-spacing: 1.3px;
+}
+
+.ai-status-card strong {
+  display: block;
+
+  color: #334155;
+
+  font-size: 11px;
+
+  margin-top: 3px;
+}
+
+.ai-status-card p {
+  color: #7c8798;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+
+  margin-top: 4px;
+}
+
+
+/* =========================================================
+   AI ANALYZING
+========================================================= */
+
+.ai-analyzing {
+  background: #eff6ff;
+
+  border-color: #bfdbfe;
+}
+
+.ai-analyzing .status-dot {
+  position: relative;
+
+  animation:
+    thinkingPulse 1s infinite;
+}
+
+.ai-analyzing .status-dot::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -4px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(37, 99, 235, 0.35);
+
+  animation:
+    thinkingRing 1s ease-out infinite;
+}
+
+.ai-state.ai-analyzing ~ .ai-avatar .avatar-core {
+  animation:
+    thinkingCore 0.9s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.interview-footer {
+  min-height: 62px;
+
+  padding: 0 5%;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  border-top: 1px solid #e5eaf1;
+
+  color: #8995a7;
+
+  font-size: 9px;
+
+  box-sizing: border-box;
+
+  animation:
+    footerEnter 0.8s ease;
+}
+
+.interview-footer span {
+  transition:
+    color 0.2s ease;
+}
+
+.interview-footer span:hover {
+  color: #2563eb;
+}
+
+
+/* =========================================================
+   PAGE + HEADER ANIMATION
+========================================================= */
+
+.interview-page {
+  animation:
+    interviewPageEnter 0.6s ease both;
+}
+
+.interview-header > * {
+  animation:
+    headerItemEnter 0.5s ease both;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  .interview-header {
+    gap: 12px;
+  }
+
+  .progress-wrapper {
+    width: 170px;
+  }
+
+  .voice-toggle {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .interview-container {
+    grid-template-columns:
+      minmax(0, 1fr)
+      300px;
+
+    gap: 30px;
+  }
+}
+
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+
+  .interview-header {
+    flex-wrap: wrap;
+
+    height: auto;
+
+    min-height: 78px;
+
+    padding: 15px 5%;
+  }
+
+  .progress-wrapper {
+    order: 10;
+
+    width: 100%;
+  }
+
+  .interview-container {
+    grid-template-columns: 1fr;
+
+    gap: 40px;
+
+    padding-top: 40px;
+  }
+
+  .live-intelligence {
+    max-width: 500px;
+
+    width: 100%;
+
+    margin: auto;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 550px) {
+
+  .interview-header {
+    padding: 14px 18px;
+
+    gap: 10px;
+  }
+
+  .interview-header .logo {
+    font-size: 17px;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .interview-status {
+    display: none;
+  }
+
+  .question-count {
+    font-size: 9px;
+
+    margin-left: auto;
+  }
+
+  .voice-toggle {
+    padding: 7px 9px;
+
+    font-size: 10px;
+  }
+
+  .interview-timer {
+    font-size: 10px;
+  }
+
+  .progress-wrapper {
+    order: 10;
+
+    width: 100%;
+
+    margin: 4px 0 0;
+  }
+
+  .progress-info span {
+    font-size: 8px;
+  }
+
+  .progress-info strong {
+    font-size: 10px;
+  }
+
+  .interview-container {
+    width: calc(100% - 32px);
+
+    padding: 32px 0 40px;
+
+    gap: 35px;
+  }
+
+  .interview-main {
+    padding-top: 0;
+  }
+
+  .ai-state {
+    font-size: 8px;
+
+    letter-spacing: 1.2px;
+  }
+
+  .ai-avatar {
+    width: 180px;
+    height: 180px;
+
+    margin: 20px auto 18px;
+  }
+
+  .ring-one {
+    width: 180px;
+    height: 105px;
+  }
+
+  .ring-two {
+    width: 210px;
+    height: 120px;
+  }
+
+  .avatar-core {
+    width: 110px;
+    height: 110px;
+
+    font-size: 34px;
+  }
+
+  .interview-context {
+    font-size: 8px;
+
+    margin-bottom: 10px;
+  }
+
+  .interview-main h1 {
+    font-size: 32px;
+
+    font-weight: 650;
+
+    letter-spacing: -1.3px;
+
+    line-height: 1.12;
+
+    color: #172033;
+
+    opacity: 1;
+  }
+
+  .interview-main h1 span {
+    color: #2563eb;
+
+    opacity: 1;
+  }
+
+  .question-hint {
+    margin: 15px auto 24px;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+  }
+
+  .answer-box {
+    padding: 14px;
+
+    border-radius: 14px;
+  }
+
+  .answer-box textarea {
+    min-height: 105px;
+
+    font-size: 13px;
+  }
+
+  .answer-controls {
+    flex-wrap: wrap;
+
+    gap: 10px;
+  }
+
+  .mic-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .recording-text {
+    min-width: 120px;
+
+    font-size: 9px;
+  }
+
+  .submit-answer {
+    width: 100%;
+
+    height: 44px;
+
+    margin-top: 2px;
+  }
+
+  .answer-feedback {
+    padding: 13px;
+  }
+
+  .answer-feedback p {
+    font-size: 9px;
+  }
+
+  .live-intelligence {
+    padding: 18px;
+
+    border-radius: 16px;
+  }
+
+  .intelligence-heading strong {
+    font-size: 14px;
+  }
+
+  .session-info {
+    gap: 8px;
+  }
+
+  .live-score {
+    margin-bottom: 25px;
+  }
+
+  .interview-footer {
+    min-height: auto;
+
+    padding: 18px;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    text-align: center;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .interview-header {
+    padding: 12px 14px;
+  }
+
+  .question-count {
+    font-size: 8px;
+  }
+
+  .voice-toggle {
+    padding: 6px 8px;
+
+    font-size: 9px;
+  }
+
+  .interview-container {
+    width: calc(100% - 26px);
+  }
+
+  .ai-avatar {
+    width: 160px;
+    height: 160px;
+  }
+
+  .ring-one {
+    width: 160px;
+    height: 95px;
+  }
+
+  .ring-two {
+    width: 185px;
+    height: 105px;
+  }
+
+  .avatar-core {
+    width: 98px;
+    height: 98px;
+
+    font-size: 30px;
+  }
+
+  .interview-main h1 {
+    font-size: 28px;
+
+    font-weight: 650;
+
+    color: #172033;
+
+    opacity: 1;
+  }
+
+  .interview-main h1 span {
+    color: #2563eb;
+
+    opacity: 1;
+  }
+
+  .question-hint {
+    font-size: 11px;
+  }
+
+  .answer-box {
+    padding: 12px;
+  }
+
+  .live-intelligence {
+    padding: 16px;
+  }
+}
+
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+
+@keyframes aiPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+
+    box-shadow:
+      0 0 0 0 rgba(37, 99, 235, 0.15);
+  }
+
+  50% {
+    transform: scale(1.08);
+
+    box-shadow:
+      0 0 25px rgba(37, 99, 235, 0.25);
+  }
+}
+
+
+@keyframes orbit {
+
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   IMPORTANT:
+   Question animation no longer changes opacity.
+   This prevents the question from becoming transparent.
+========================================================= */
+
+@keyframes questionSlide {
+
+  from {
+    transform: translateY(10px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes statusFade {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes feedbackEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes recordingPulse {
+
+  0% {
+    transform: scale(1);
+
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.5);
+
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1);
+
+    opacity: 1;
+  }
+}
+
+
+@keyframes micPulse {
+
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+@keyframes recordingRing {
+
+  0% {
+    transform: scale(0.9);
+
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.25);
+
+    opacity: 0;
+  }
+}
+
+
+@keyframes thinkingPulse {
+
+  0% {
+    transform: scale(1);
+
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.5);
+
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1);
+
+    opacity: 1;
+  }
+}
+
+
+@keyframes thinkingCore {
+
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+
+    box-shadow:
+      0 0 30px rgba(37, 99, 235, 0.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+@keyframes contextFade {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes hintFade {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes metricEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateX(0);
+  }
+}
+
+
+@keyframes statusCardEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes iconFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+
+@keyframes livePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+
+    transform: scale(1.04);
+  }
+}
+
+
+@keyframes timerWarning {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+
+@keyframes voiceOn {
+
+  from {
+    opacity: 0.6;
+
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: scale(1);
+  }
+}
+
+
+@keyframes footerEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes headerItemEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes interviewPageEnter {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes thinkingRing {
+
+  0% {
+    transform: scale(0.8);
+
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.8);
+
+    opacity: 0;
+  }
+}

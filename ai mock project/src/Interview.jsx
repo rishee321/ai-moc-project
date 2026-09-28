@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import "./Interview.css";
 
-
 function Interview({
   role = "Frontend Developer",
   type = "Technical",
   experience = "Fresher",
   difficulty = "Adaptive",
-  questions = "10"
-  
-
+  questions = "10",
+  onComplete
 }) {
-
   const totalQuestions = Number(questions);
 
   // SAVED INTERVIEW STATE
@@ -51,7 +48,6 @@ function Interview({
   );
 
   const recognitionRef = useRef(null);
-
 
   // QUESTIONS
   const questionList = [
@@ -100,7 +96,6 @@ function Interview({
   const currentQuestionData =
     questionList[currentQuestion - 1] || questionList[0];
 
-
   // SAVE INTERVIEW STATE
   useEffect(() => {
     if (interviewComplete) {
@@ -128,27 +123,30 @@ function Interview({
     interviewComplete
   ]);
 
-
   // TIMER
   useEffect(() => {
-
     if (timeLeft <= 0) {
-
       setInterviewComplete(true);
-      onComplete();
-
-
-      localStorage.setItem(
-        "interviewPage",
-        "result"
-      );
 
       localStorage.setItem(
         "interviewAnswers",
         JSON.stringify(answers)
       );
 
+      localStorage.setItem(
+        "interviewPage",
+        "result"
+      );
+
       localStorage.removeItem("interviewState");
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      if (onComplete) {
+        onComplete();
+      }
 
       return;
     }
@@ -158,13 +156,10 @@ function Interview({
     }, 1000);
 
     return () => clearInterval(timer);
-
   }, [timeLeft]);
-
 
   // SPEECH RECOGNITION
   useEffect(() => {
-
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
@@ -180,7 +175,6 @@ function Interview({
     recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
-
       let transcript = "";
 
       for (
@@ -208,13 +202,10 @@ function Interview({
         // ignore
       }
     };
-
   }, []);
-
 
   // AI VOICE
   const speakQuestion = (text) => {
-
     if (
       !voiceEnabled ||
       !("speechSynthesis" in window)
@@ -234,10 +225,8 @@ function Interview({
     window.speechSynthesis.speak(speech);
   };
 
-
   // SPEAK QUESTION
   useEffect(() => {
-
     const questionText =
       currentQuestionData.main +
       " " +
@@ -246,23 +235,16 @@ function Interview({
     if (voiceEnabled) {
       speakQuestion(questionText);
     }
-
   }, [currentQuestion, voiceEnabled]);
-
 
   // STOP VOICE ON EXIT
   useEffect(() => {
-
     return () => {
-
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
-
     };
-
   }, []);
-
 
   // TIMER FORMAT
   const minutes = Math.floor(timeLeft / 60);
@@ -273,10 +255,8 @@ function Interview({
       seconds
     ).padStart(2, "0")}`;
 
-
   // SUBMIT ANSWER
   const handleSubmit = () => {
-
     if (!answer.trim()) {
       return;
     }
@@ -301,10 +281,8 @@ function Interview({
     }, 1200);
   };
 
-
   // NEXT QUESTION
   const handleNext = () => {
-
     if (!answer.trim()) {
       return;
     }
@@ -325,14 +303,13 @@ function Interview({
 
     setAnswers(updatedAnswers);
 
-
     // LAST QUESTION
     if (currentQuestion >= totalQuestions) {
-
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
 
+      // SAVE FINAL ANSWERS FIRST
       localStorage.setItem(
         "interviewAnswers",
         JSON.stringify(updatedAnswers)
@@ -349,9 +326,13 @@ function Interview({
 
       setInterviewComplete(true);
 
+      // GO TO RESULT PAGE
+      if (onComplete) {
+        onComplete();
+      }
+
       return;
     }
-
 
     // NEXT QUESTION
     setCurrentQuestion(
@@ -363,54 +344,18 @@ function Interview({
     setAiState("READY");
   };
 
-
   // VOICE TOGGLE
   const handleVoiceToggle = () => {
-
     if (voiceEnabled) {
-
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
 
       setVoiceEnabled(false);
-
     } else {
-
       setVoiceEnabled(true);
-
     }
   };
-
-
-  // RETRY
-  const handleRetry = () => {
-
-    localStorage.removeItem("interviewState");
-    localStorage.removeItem("interviewAnswers");
-
-    localStorage.setItem(
-      "interviewPage",
-      "setup"
-    );
-
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-
-    setInterviewComplete(false);
-    setCurrentQuestion(1);
-    setAnswer("");
-    setAnswers([]);
-    setSubmitted(false);
-    setIsListening(false);
-    setAiState("READY");
-    setTimeLeft(totalQuestions * 60);
-  };
-
-
-  
-
 
   return (
     <div className="interview-page">
@@ -486,7 +431,6 @@ function Interview({
 
         </div>
 
-
         {/* VOICE */}
         <button
           type="button"
@@ -502,7 +446,6 @@ function Interview({
             : "🔇 AI Voice"}
         </button>
 
-
         {/* TIMER */}
         <div
           className={`interview-timer ${
@@ -515,7 +458,6 @@ function Interview({
         </div>
 
       </header>
-
 
       {/* MAIN */}
       <main className="interview-container">
@@ -533,7 +475,6 @@ function Interview({
             AI INTERVIEWER · {aiState}
           </div>
 
-
           {/* AI AVATAR */}
           <div className="ai-avatar">
 
@@ -547,11 +488,9 @@ function Interview({
 
           </div>
 
-
           <div className="interview-context">
             {role} · {type} · {experience}
           </div>
-
 
           {/* QUESTION */}
           <h1>
@@ -564,7 +503,6 @@ function Interview({
 
           </h1>
 
-
           <p className="question-hint">
 
             {currentQuestion === 1
@@ -573,7 +511,6 @@ function Interview({
             }
 
           </p>
-
 
           {/* ANSWER */}
           <div className="answer-box">
@@ -585,7 +522,6 @@ function Interview({
               }
               placeholder="Type your answer here..."
             />
-
 
             <div className="answer-controls">
 
@@ -633,7 +569,6 @@ function Interview({
                 🎙
               </button>
 
-
               {/* RECORDING STATUS */}
               <div
                 className={`recording-text ${
@@ -650,7 +585,6 @@ function Interview({
                   : "Ready to answer"}
 
               </div>
-
 
               {/* SUBMIT / NEXT */}
               {!submitted ? (
@@ -687,7 +621,6 @@ function Interview({
 
           </div>
 
-
           {/* FEEDBACK */}
           {submitted && (
 
@@ -717,7 +650,6 @@ function Interview({
 
         </section>
 
-
         {/* RIGHT INTELLIGENCE */}
         <aside className="live-intelligence">
 
@@ -738,7 +670,6 @@ function Interview({
             </div>
 
           </div>
-
 
           {/* SESSION INFO */}
           <div className="session-info">
@@ -765,7 +696,6 @@ function Interview({
 
           </div>
 
-
           {/* SCORE */}
           <div className="live-score">
 
@@ -785,7 +715,6 @@ function Interview({
             </p>
 
           </div>
-
 
           {/* METRICS */}
           <div className="live-metrics">
@@ -821,7 +750,6 @@ function Interview({
 
             </div>
 
-
             <div className="live-metric">
 
               <div>
@@ -852,7 +780,6 @@ function Interview({
               </div>
 
             </div>
-
 
             <div className="live-metric">
 
@@ -886,7 +813,6 @@ function Interview({
             </div>
 
           </div>
-
 
           {/* AI STATUS */}
           <div className="ai-status-card">
@@ -934,7 +860,6 @@ function Interview({
         </aside>
 
       </main>
-
 
       {/* FOOTER */}
       <footer className="interview-footer">

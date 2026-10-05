@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "./Interview.css";
+import { apiRequest } from "./api/api";
 
 function Interview({
   role = "Frontend Developer",
@@ -7,11 +8,54 @@ function Interview({
   experience = "Fresher",
   difficulty = "Adaptive",
   questions = "10",
+  interviewId,
+  onBack,
   onComplete
 }) {
   const totalQuestions = Number(questions);
 
+  // --------------------------------------------------
+  // BACK BUTTON
+  // --------------------------------------------------
+
+  const renderBackButton = () => {
+    if (!onBack) return null;
+
+    return (
+      <button
+        type="button"
+        onClick={onBack}
+        style={{
+          position: "fixed",
+          top: "18px",
+          left: "18px",
+          zIndex: 999999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "10px 17px",
+          minWidth: "90px",
+          height: "42px",
+          background: "#ffffff",
+          color: "#0b1220",
+          border: "1px solid #cbd5e1",
+          borderRadius: "10px",
+          fontSize: "14px",
+          fontWeight: "700",
+          cursor: "pointer",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.18)"
+        }}
+      >
+        ← Back
+      </button>
+    );
+  };
+
+  // --------------------------------------------------
   // SAVED INTERVIEW STATE
+  // --------------------------------------------------
+
   const savedInterview = JSON.parse(
     localStorage.getItem("interviewState") || "null"
   );
@@ -34,69 +78,250 @@ function Interview({
     savedInterview?.currentQuestion || 1
   );
 
-  const [interviewComplete, setInterviewComplete] = useState(false);
+  const [interviewComplete, setInterviewComplete] =
+    useState(false);
 
   const [answers, setAnswers] = useState(
     savedInterview?.answers || []
   );
 
-  const [isListening, setIsListening] = useState(false);
-  const [aiState, setAiState] = useState("READY");
+  const [isListening, setIsListening] =
+    useState(false);
+
+  const [aiState, setAiState] =
+    useState("READY");
 
   const [voiceEnabled, setVoiceEnabled] = useState(
     savedInterview?.voiceEnabled ?? true
   );
 
+  // --------------------------------------------------
+  // BACKEND QUESTIONS
+  // --------------------------------------------------
+
+  const [questionList, setQuestionList] =
+    useState([]);
+
+  const [questionsLoading, setQuestionsLoading] =
+    useState(true);
+
+  // --------------------------------------------------
+  // ANSWER RESULT
+  // --------------------------------------------------
+
+  const [answerScore, setAnswerScore] =
+    useState(null);
+
+  const [answerFeedback, setAnswerFeedback] =
+    useState("");
+
+  // --------------------------------------------------
+  // FINISH LOADING
+  // --------------------------------------------------
+
+  const [finishingInterview, setFinishingInterview] =
+    useState(false);
+
   const recognitionRef = useRef(null);
 
-  // QUESTIONS
-  const questionList = [
-    {
-      main: "Tell me about yourself",
-      sub: "and your experience."
-    },
-    {
-      main: "You mentioned your experience.",
-      sub: "What project are you most proud of?"
-    },
-    {
-      main: "Tell me about that project.",
-      sub: "What was your specific contribution?"
-    },
-    {
-      main: "What technical challenge did you face?",
-      sub: "How did you solve it?"
-    },
-    {
-      main: "You mentioned your approach.",
-      sub: "Why did you choose that solution?"
-    },
-    {
-      main: "How did you test your solution?",
-      sub: "What did you learn from it?"
-    },
-    {
-      main: "If you could improve that project,",
-      sub: "what would you change?"
-    },
-    {
-      main: "How do you handle difficult problems?",
-      sub: "Can you explain your approach?"
-    },
-    {
-      main: "What is one technical skill",
-      sub: "you are currently improving?"
-    },
-    {
-      main: "Why should we consider you",
-      sub: "for this role?"
+  // --------------------------------------------------
+  // COMPLETE INTERVIEW + GENERATE RESULT
+  // --------------------------------------------------
+
+  const finishInterview = async (
+    finalAnswers = answers
+  ) => {
+    if (finishingInterview) {
+      return;
     }
-  ];
+
+    setFinishingInterview(true);
+    setAiState("COMPLETING");
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (
+      recognitionRef.current &&
+      isListening
+    ) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        // ignore
+      }
+
+      setIsListening(false);
+    }
+
+    localStorage.setItem(
+      "interviewAnswers",
+      JSON.stringify(finalAnswers)
+    );
+
+    localStorage.setItem(
+      "interviewPage",
+      "result"
+    );
+
+    if (interviewId) {
+      try {
+        const completeData =
+          await apiRequest(
+            `/interviews/${interviewId}/complete`,
+            {
+              method: "POST"
+            }
+          );
+
+        console.log(
+          "Interview completed:",
+          completeData
+        );
+      } catch (error) {
+        console.error(
+          "Interview completion error:",
+          error
+        );
+      }
+
+      try {
+        const resultData =
+          await apiRequest(
+            `/results/generate/${interviewId}`,
+            {
+              method: "POST"
+            }
+          );
+
+        console.log(
+          "Interview result generated:",
+          resultData
+        );
+
+        if (resultData) {
+          localStorage.setItem(
+            "selectedResult",
+            JSON.stringify(resultData)
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Result generation error:",
+          error
+        );
+      }
+    }
+
+    localStorage.removeItem(
+      "interviewState"
+    );
+
+    setInterviewComplete(true);
+    setFinishingInterview(false);
+
+    if (onComplete) {
+      onComplete();
+    }
+  };
+
+  // --------------------------------------------------
+  // START INTERVIEW + LOAD QUESTIONS
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const startAndLoadInterview =
+      async () => {
+        if (!interviewId) {
+          console.log(
+            "Interview ID missing"
+          );
+
+          setQuestionsLoading(false);
+          return;
+        }
+
+        try {
+          try {
+            const startData =
+              await apiRequest(
+                `/interviews/${interviewId}/start`,
+                {
+                  method: "POST"
+                }
+              );
+
+            console.log(
+              "Interview started:",
+              startData
+            );
+          } catch (error) {
+            console.log(
+              "Start interview response:",
+              error.message
+            );
+          }
+
+          const data =
+            await apiRequest(
+              `/interviews/${interviewId}/questions`
+            );
+
+          console.log(
+            "Interview questions:",
+            data
+          );
+
+          if (
+            Array.isArray(data) &&
+            data.length > 0
+          ) {
+            const selectedQuestions =
+              data.slice(
+                0,
+                totalQuestions
+              );
+
+            setQuestionList(
+              selectedQuestions
+            );
+          } else {
+            alert(
+              "No questions found for this interview."
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Interview loading error:",
+            error
+          );
+
+          alert(
+            error.message ||
+              "Failed to load interview questions."
+          );
+        } finally {
+          setQuestionsLoading(false);
+        }
+      };
+
+    startAndLoadInterview();
+  }, [interviewId, totalQuestions]);
+
+  // --------------------------------------------------
+  // CURRENT QUESTION
+  // --------------------------------------------------
 
   const currentQuestionData =
-    questionList[currentQuestion - 1] || questionList[0];
+    questionList[
+      currentQuestion - 1
+    ] || null;
 
+  // --------------------------------------------------
   // SAVE INTERVIEW STATE
+  // --------------------------------------------------
+
   useEffect(() => {
     if (interviewComplete) {
       return;
@@ -123,42 +348,36 @@ function Interview({
     interviewComplete
   ]);
 
+  // --------------------------------------------------
   // TIMER
+  // --------------------------------------------------
+
   useEffect(() => {
     if (timeLeft <= 0) {
-      setInterviewComplete(true);
-
-      localStorage.setItem(
-        "interviewAnswers",
-        JSON.stringify(answers)
-      );
-
-      localStorage.setItem(
-        "interviewPage",
-        "result"
-      );
-
-      localStorage.removeItem("interviewState");
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-
-      if (onComplete) {
-        onComplete();
+      if (!interviewComplete) {
+        finishInterview(answers);
       }
 
       return;
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft(
+        (prev) => prev - 1
+      );
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+    return () =>
+      clearInterval(timer);
+  }, [
+    timeLeft,
+    interviewComplete
+  ]);
 
+  // --------------------------------------------------
   // SPEECH RECOGNITION
+  // --------------------------------------------------
+
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition ||
@@ -168,13 +387,16 @@ function Interview({
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition =
+      new SpeechRecognition();
 
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (
+      event
+    ) => {
       let transcript = "";
 
       for (
@@ -182,18 +404,29 @@ function Interview({
         i < event.results.length;
         i++
       ) {
-        transcript += event.results[i][0].transcript;
+        transcript +=
+          event.results[i][0]
+            .transcript;
       }
 
-      setAnswer((prev) => prev + transcript);
+      setAnswer(
+        (prev) =>
+          prev + transcript
+      );
     };
 
     recognition.onend = () => {
       setIsListening(false);
-      setAiState("READY");
+
+      if (
+        aiState === "LISTENING"
+      ) {
+        setAiState("READY");
+      }
     };
 
-    recognitionRef.current = recognition;
+    recognitionRef.current =
+      recognition;
 
     return () => {
       try {
@@ -202,13 +435,19 @@ function Interview({
         // ignore
       }
     };
-  }, []);
+  }, [aiState]);
 
+  // --------------------------------------------------
   // AI VOICE
-  const speakQuestion = (text) => {
+  // --------------------------------------------------
+
+  const speakQuestion = (
+    text
+  ) => {
     if (
       !voiceEnabled ||
-      !("speechSynthesis" in window)
+      !("speechSynthesis" in window) ||
+      !text
     ) {
       return;
     }
@@ -216,149 +455,524 @@ function Interview({
     window.speechSynthesis.cancel();
 
     const speech =
-      new SpeechSynthesisUtterance(text);
+      new SpeechSynthesisUtterance(
+        text
+      );
 
     speech.lang = "en-US";
     speech.rate = 0.95;
     speech.pitch = 1;
 
-    window.speechSynthesis.speak(speech);
+    window.speechSynthesis.speak(
+      speech
+    );
   };
 
-  // SPEAK QUESTION
+  // --------------------------------------------------
+  // SPEAK CURRENT QUESTION
+  // --------------------------------------------------
+
   useEffect(() => {
-    const questionText =
-      currentQuestionData.main +
-      " " +
-      currentQuestionData.sub;
+    if (
+      !currentQuestionData ||
+      questionsLoading
+    ) {
+      return;
+    }
 
     if (voiceEnabled) {
-      speakQuestion(questionText);
+      speakQuestion(
+        currentQuestionData.question_text
+      );
     }
-  }, [currentQuestion, voiceEnabled]);
+  }, [
+    currentQuestion,
+    voiceEnabled,
+    currentQuestionData,
+    questionsLoading
+  ]);
 
+  // --------------------------------------------------
   // STOP VOICE ON EXIT
+  // --------------------------------------------------
+
   useEffect(() => {
     return () => {
-      if ("speechSynthesis" in window) {
+      if (
+        "speechSynthesis" in window
+      ) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
 
+  // --------------------------------------------------
   // TIMER FORMAT
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  // --------------------------------------------------
+
+  const minutes = Math.floor(
+    timeLeft / 60
+  );
+
+  const seconds =
+    timeLeft % 60;
 
   const formattedTime =
-    `${String(minutes).padStart(2, "0")}:${String(
-      seconds
-    ).padStart(2, "0")}`;
+    `${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
 
-  // SUBMIT ANSWER
-  const handleSubmit = () => {
-    if (!answer.trim()) {
-      return;
-    }
+  // --------------------------------------------------
+  // SUBMIT ANSWER + AI FOLLOW-UP
+  // --------------------------------------------------
 
-    if (
-      recognitionRef.current &&
-      isListening
-    ) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    }
+  const handleSubmit =
+    async () => {
+      if (!answer.trim()) {
+        alert(
+          "Please enter your answer first."
+        );
+        return;
+      }
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+      if (!currentQuestionData) {
+        alert(
+          "Question not found."
+        );
+        return;
+      }
 
-    setSubmitted(true);
-    setAiState("ANALYZING");
+      if (
+        recognitionRef.current &&
+        isListening
+      ) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          // ignore
+        }
 
-    setTimeout(() => {
-      setAiState("NEXT QUESTION");
-    }, 1200);
-  };
+        setIsListening(false);
+      }
 
-  // NEXT QUESTION
-  const handleNext = () => {
-    if (!answer.trim()) {
-      return;
-    }
+      if (
+        "speechSynthesis" in window
+      ) {
+        window.speechSynthesis.cancel();
+      }
 
-    const newAnswer = {
-      question: currentQuestion,
-      questionText:
-        currentQuestionData.main +
-        " " +
-        currentQuestionData.sub,
-      answer: answer.trim()
+      try {
+        // --------------------------------------------------
+        // 1. SAVE + ANALYZE ANSWER
+        // --------------------------------------------------
+
+        setAiState("ANALYZING");
+
+        console.log(
+          "Submitting answer:",
+          {
+            question_id:
+              currentQuestionData.id,
+            answer_text:
+              answer.trim()
+          }
+        );
+
+        const data =
+          await apiRequest(
+            "/answers/",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+              body: JSON.stringify({
+                question_id:
+                  currentQuestionData.id,
+                answer_text:
+                  answer.trim()
+              })
+            }
+          );
+
+        console.log(
+          "Answer saved successfully:",
+          data
+        );
+
+        setAnswerScore(
+          data?.score ?? null
+        );
+
+        setAnswerFeedback(
+          data?.feedback || ""
+        );
+
+        // --------------------------------------------------
+        // 2. GENERATE AI FOLLOW-UP
+        // --------------------------------------------------
+
+        try {
+          setAiState(
+            "GENERATING FOLLOW-UP"
+          );
+
+          console.log(
+            "🔥 FOLLOW-UP API START"
+          );
+
+          console.log(
+            "Question ID:",
+            currentQuestionData.id
+          );
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                300
+              )
+          );
+
+          const followUpData =
+            await apiRequest(
+              `/ai/follow-up/${currentQuestionData.id}`,
+              {
+                method: "POST"
+              }
+            );
+
+          console.log(
+            "🔥 FOLLOW-UP API END"
+          );
+
+          console.log(
+            "AI Follow-up generated:",
+            followUpData
+          );
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                1200
+              )
+          );
+
+          // --------------------------------------------------
+          // 3. INSERT FOLLOW-UP
+          // --------------------------------------------------
+
+          if (
+            followUpData?.follow_up_question &&
+            followUpData?.follow_up_question_id
+          ) {
+            const followUpQuestion =
+              {
+                id:
+                  followUpData.follow_up_question_id,
+
+                interview_id:
+                  interviewId,
+
+                question_text:
+                  followUpData.follow_up_question,
+
+                category:
+                  followUpData.category ||
+                  "Adaptive Follow-up",
+
+                difficulty:
+                  followUpData.difficulty ||
+                  "Adaptive"
+              };
+
+            setQuestionList(
+              (prev) => {
+                const insertIndex =
+                  currentQuestion;
+
+                return [
+                  ...prev.slice(
+                    0,
+                    insertIndex
+                  ),
+
+                  followUpQuestion,
+
+                  ...prev.slice(
+                    insertIndex
+                  )
+                ];
+              }
+            );
+
+            console.log(
+              "Follow-up added:",
+              followUpQuestion
+            );
+          }
+        } catch (
+          followUpError
+        ) {
+          console.warn(
+            "AI follow-up could not be generated:",
+            followUpError.message
+          );
+        }
+
+        // --------------------------------------------------
+        // 4. ANSWER SUBMITTED
+        // --------------------------------------------------
+
+        setSubmitted(true);
+
+        setAiState(
+          "NEXT QUESTION"
+        );
+      } catch (error) {
+        console.error(
+          "Answer submission error:",
+          error
+        );
+
+        setAiState("READY");
+
+        alert(
+          error.message ||
+            "Failed to save your answer. Please try again."
+        );
+      }
     };
 
-    const updatedAnswers = [
-      ...answers,
-      newAnswer
-    ];
+  // --------------------------------------------------
+  // NEXT QUESTION
+  // --------------------------------------------------
 
-    setAnswers(updatedAnswers);
-
-    // LAST QUESTION
-    if (currentQuestion >= totalQuestions) {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+  const handleNext =
+    async () => {
+      if (!answer.trim()) {
+        return;
       }
 
-      // SAVE FINAL ANSWERS FIRST
-      localStorage.setItem(
-        "interviewAnswers",
-        JSON.stringify(updatedAnswers)
-      );
-
-      localStorage.setItem(
-        "interviewPage",
-        "result"
-      );
-
-      localStorage.removeItem(
-        "interviewState"
-      );
-
-      setInterviewComplete(true);
-
-      // GO TO RESULT PAGE
-      if (onComplete) {
-        onComplete();
+      if (!currentQuestionData) {
+        return;
       }
 
-      return;
-    }
+      const newAnswer = {
+        question:
+          currentQuestionData.id,
 
-    // NEXT QUESTION
-    setCurrentQuestion(
-      (prev) => prev + 1
-    );
+        questionNumber:
+          currentQuestion,
 
-    setAnswer("");
-    setSubmitted(false);
-    setAiState("READY");
-  };
+        questionText:
+          currentQuestionData.question_text,
 
+        answer:
+          answer.trim(),
+
+        score:
+          answerScore,
+
+        feedback:
+          answerFeedback
+      };
+
+      const updatedAnswers =
+        [
+          ...answers,
+          newAnswer
+        ];
+
+      setAnswers(
+        updatedAnswers
+      );
+
+      if (
+        currentQuestion >=
+        questionList.length
+      ) {
+        await finishInterview(
+          updatedAnswers
+        );
+
+        return;
+      }
+
+      setCurrentQuestion(
+        (prev) => prev + 1
+      );
+
+      setAnswer("");
+      setSubmitted(false);
+      setAnswerScore(null);
+      setAnswerFeedback("");
+      setAiState("READY");
+    };
+
+  // --------------------------------------------------
   // VOICE TOGGLE
-  const handleVoiceToggle = () => {
-    if (voiceEnabled) {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+  // --------------------------------------------------
 
-      setVoiceEnabled(false);
-    } else {
-      setVoiceEnabled(true);
-    }
-  };
+  const handleVoiceToggle =
+    () => {
+      if (voiceEnabled) {
+        if (
+          "speechSynthesis" in
+          window
+        ) {
+          window.speechSynthesis.cancel();
+        }
+
+        setVoiceEnabled(false);
+      } else {
+        setVoiceEnabled(true);
+      }
+    };
+
+  // --------------------------------------------------
+  // LOADING SCREEN
+  // --------------------------------------------------
+
+  if (questionsLoading) {
+    return (
+      <div
+        className="interview-page"
+        style={{
+          position: "relative"
+        }}
+      >
+        {renderBackButton()}
+
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center",
+            flexDirection:
+              "column",
+            gap: "12px",
+            padding: "20px",
+            textAlign: "center"
+          }}
+        >
+          <h2>
+            Preparing your interview...
+          </h2>
+
+          <p>
+            Loading questions from AI Interview Coach
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // NO QUESTIONS
+  // --------------------------------------------------
+
+  if (
+    !questionsLoading &&
+    questionList.length === 0
+  ) {
+    return (
+      <div
+        className="interview-page"
+        style={{
+          position: "relative"
+        }}
+      >
+        {renderBackButton()}
+
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center",
+            flexDirection:
+              "column",
+            gap: "12px",
+            padding: "20px",
+            textAlign: "center"
+          }}
+        >
+          <h2>
+            No interview questions found.
+          </h2>
+
+          <p>
+            Please create a new interview and try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // FINISHING SCREEN
+  // --------------------------------------------------
+
+  if (finishingInterview) {
+    return (
+      <div
+        className="interview-page"
+        style={{
+          position: "relative"
+        }}
+      >
+        {renderBackButton()}
+
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent:
+              "center",
+            flexDirection:
+              "column",
+            gap: "12px",
+            padding: "20px",
+            textAlign: "center"
+          }}
+        >
+          <h2>
+            Completing your interview...
+          </h2>
+
+          <p>
+            Generating your interview result.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // MAIN INTERVIEW
+  // --------------------------------------------------
 
   return (
-    <div className="interview-page">
+    <div
+      className="interview-page"
+      style={{
+        position: "relative"
+      }}
+    >
+
+      {/* GUARANTEED BACK BUTTON */}
+      {renderBackButton()}
 
       {/* HEADER */}
       <header className="interview-header">
@@ -388,12 +1002,14 @@ function Interview({
           QUESTION{" "}
 
           <strong>
-            {String(currentQuestion).padStart(2, "0")}
+            {String(
+              currentQuestion
+            ).padStart(2, "0")}
           </strong>
 
           {" / "}
 
-          {questions}
+          {questionList.length}
 
         </div>
 
@@ -408,7 +1024,7 @@ function Interview({
             <strong>
               {Math.round(
                 (currentQuestion /
-                  totalQuestions) *
+                  questionList.length) *
                   100
               )}
               %
@@ -422,7 +1038,7 @@ function Interview({
               style={{
                 width:
                   `${(currentQuestion /
-                    totalQuestions) *
+                    questionList.length) *
                     100}%`
               }}
             ></span>
@@ -439,7 +1055,9 @@ function Interview({
               ? "voice-on"
               : "voice-off"
           }`}
-          onClick={handleVoiceToggle}
+          onClick={
+            handleVoiceToggle
+          }
         >
           {voiceEnabled
             ? "🔊 AI Voice"
@@ -468,7 +1086,10 @@ function Interview({
           <div
             className={`ai-state ai-${aiState
               .toLowerCase()
-              .replace(" ", "-")}`}
+              .replaceAll(
+                " ",
+                "-"
+              )}`}
           >
             <span className="status-dot"></span>
 
@@ -494,20 +1115,19 @@ function Interview({
 
           {/* QUESTION */}
           <h1>
-
-            {currentQuestionData.main}
-
-            <span>
-              {currentQuestionData.sub}
-            </span>
-
+            {
+              currentQuestionData.question_text
+            }
           </h1>
 
           <p className="question-hint">
 
             {currentQuestion === 1
               ? "Take your time. Speak naturally and structure your answer clearly."
-              : "Your previous answer helped shape this follow-up question."
+              : currentQuestionData.category ===
+                "Adaptive Follow-up"
+              ? "This follow-up question was generated based on your previous answer."
+              : "Your previous answer helped shape this interview question."
             }
 
           </p>
@@ -518,9 +1138,12 @@ function Interview({
             <textarea
               value={answer}
               onChange={(e) =>
-                setAnswer(e.target.value)
+                setAnswer(
+                  e.target.value
+                )
               }
               placeholder="Type your answer here..."
+              disabled={submitted}
             />
 
             <div className="answer-controls">
@@ -535,8 +1158,13 @@ function Interview({
                 }`}
                 onClick={() => {
 
-                  if (!recognitionRef.current) {
+                  if (submitted) {
+                    return;
+                  }
 
+                  if (
+                    !recognitionRef.current
+                  ) {
                     alert(
                       "Speech recognition is not supported in this browser."
                     );
@@ -544,26 +1172,41 @@ function Interview({
                     return;
                   }
 
-                  if (isListening) {
+                  if (
+                    isListening
+                  ) {
+                    try {
+                      recognitionRef.current.stop();
+                    } catch (
+                      error
+                    ) {
+                      // ignore
+                    }
 
-                    recognitionRef.current.stop();
+                    setIsListening(
+                      false
+                    );
 
-                    setIsListening(false);
-                    setAiState("READY");
-
+                    setAiState(
+                      "READY"
+                    );
                   } else {
-
                     try {
                       recognitionRef.current.start();
 
-                      setIsListening(true);
-                      setAiState("LISTENING");
-                    } catch (error) {
+                      setIsListening(
+                        true
+                      );
+
+                      setAiState(
+                        "LISTENING"
+                      );
+                    } catch (
+                      error
+                    ) {
                       // ignore duplicate start
                     }
-
                   }
-
                 }}
               >
                 🎙
@@ -592,9 +1235,24 @@ function Interview({
                 <button
                   type="button"
                   className="submit-answer"
-                  onClick={handleSubmit}
+                  onClick={
+                    handleSubmit
+                  }
+                  disabled={
+                    aiState ===
+                      "ANALYZING" ||
+                    aiState ===
+                      "GENERATING FOLLOW-UP"
+                  }
                 >
-                  Submit Answer
+                  {aiState ===
+                  "ANALYZING"
+                    ? "Analyzing..."
+                    : aiState ===
+                      "GENERATING FOLLOW-UP"
+                    ? "Generating..."
+                    : "Submit Answer"}
+
                   <span>→</span>
                 </button>
 
@@ -603,11 +1261,16 @@ function Interview({
                 <button
                   type="button"
                   className="submit-answer"
-                  onClick={handleNext}
+                  onClick={
+                    handleNext
+                  }
+                  disabled={
+                    finishingInterview
+                  }
                 >
 
                   {currentQuestion >=
-                  totalQuestions
+                  questionList.length
                     ? "View Results"
                     : "Next Question"}
 
@@ -633,19 +1296,33 @@ function Interview({
               <div>
 
                 <strong>
-                  Answer received
+                  Answer saved successfully
                 </strong>
 
                 <p>
-                  AI has analyzed your response.
-                  The next question will adapt
-                  to your answer.
+                  Your answer has been saved to
+                  the interview backend.
                 </p>
+
+                {answerScore !==
+                  null && (
+                  <p>
+                    Score:{" "}
+                    <strong>
+                      {answerScore}
+                    </strong>
+                  </p>
+                )}
+
+                {answerFeedback && (
+                  <p>
+                    {answerFeedback}
+                  </p>
+                )}
 
               </div>
 
             </div>
-
           )}
 
         </section>
@@ -704,12 +1381,19 @@ function Interview({
             </span>
 
             <strong>
-              {submitted ? "82" : "—"}
+              {submitted &&
+              answerScore !==
+                null
+                ? answerScore
+                : "—"}
             </strong>
 
             <p>
               {submitted
-                ? "Initial answer analysis completed."
+                ? answerScore !==
+                  null
+                  ? "Backend answer analysis completed."
+                  : "Answer saved successfully."
                 : "Answer a question to begin analysis."
               }
             </p>
@@ -724,12 +1408,13 @@ function Interview({
               <div>
 
                 <span>
-                  Communication
+                  CURRENT ANSWER SCORE
                 </span>
 
                 <strong>
-                  {submitted
-                    ? "86"
+                  {submitted &&
+                  answerScore !== null
+                    ? answerScore
                     : "—"}
                 </strong>
 
@@ -740,8 +1425,9 @@ function Interview({
                 <span
                   style={{
                     width:
-                      submitted
-                        ? "86%"
+                      submitted &&
+                      answerScore !== null
+                        ? `${answerScore}%`
                         : "0%"
                   }}
                 ></span>
@@ -755,27 +1441,14 @@ function Interview({
               <div>
 
                 <span>
-                  Technical
+                  AI EVALUATION
                 </span>
 
                 <strong>
                   {submitted
-                    ? "79"
+                    ? "DONE"
                     : "—"}
                 </strong>
-
-              </div>
-
-              <div className="metric-track">
-
-                <span
-                  style={{
-                    width:
-                      submitted
-                        ? "79%"
-                        : "0%"
-                  }}
-                ></span>
 
               </div>
 
@@ -786,27 +1459,17 @@ function Interview({
               <div>
 
                 <span>
-                  Confidence
+                  ADAPTIVE AI
                 </span>
 
                 <strong>
-                  {submitted
-                    ? "81"
+                  {aiState ===
+                  "GENERATING FOLLOW-UP"
+                    ? "WORKING"
+                    : submitted
+                    ? "READY"
                     : "—"}
                 </strong>
-
-              </div>
-
-              <div className="metric-track">
-
-                <span
-                  style={{
-                    width:
-                      submitted
-                        ? "81%"
-                        : "0%"
-                  }}
-                ></span>
 
               </div>
 
@@ -829,12 +1492,21 @@ function Interview({
 
               <strong>
 
-                {aiState === "LISTENING"
+                {aiState ===
+                "LISTENING"
                   ? "Listening to you"
-                  : aiState === "ANALYZING"
-                  ? "Analyzing your answer"
-                  : aiState === "NEXT QUESTION"
-                  ? "Preparing next question"
+                  : aiState ===
+                    "ANALYZING"
+                  ? "Saving and analyzing answer"
+                  : aiState ===
+                    "GENERATING FOLLOW-UP"
+                  ? "Generating adaptive question"
+                  : aiState ===
+                    "COMPLETING"
+                  ? "Completing interview"
+                  : aiState ===
+                    "NEXT QUESTION"
+                  ? "Answer saved"
                   : "Ready for your answer"
                 }
 
@@ -842,12 +1514,21 @@ function Interview({
 
               <p>
 
-                {aiState === "LISTENING"
+                {aiState ===
+                "LISTENING"
                   ? "AI is listening to your response."
-                  : aiState === "ANALYZING"
-                  ? "Evaluating your response and key points."
-                  : aiState === "NEXT QUESTION"
-                  ? "Generating an adaptive follow-up question."
+                  : aiState ===
+                    "ANALYZING"
+                  ? "Sending your answer to the backend."
+                  : aiState ===
+                    "GENERATING FOLLOW-UP"
+                  ? "AI is creating a follow-up based on your answer."
+                  : aiState ===
+                    "COMPLETING"
+                  ? "Finishing interview and preparing your result."
+                  : aiState ===
+                    "NEXT QUESTION"
+                  ? "Your answer has been saved successfully."
                   : "Start answering when you're ready."
                 }
 
@@ -865,7 +1546,7 @@ function Interview({
       <footer className="interview-footer">
 
         <span>
-          AI adapts the next question based on your answer.
+          AI adapts the interview based on your answers.
         </span>
 
         <span>

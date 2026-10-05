@@ -8,7 +8,7 @@ function Register({ onRegister, onBackToLogin }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -21,17 +21,43 @@ function Register({ onRegister, onBackToLogin }) {
       return;
     }
 
-    setRegisterSuccess(true);
+    try {
+      const response = await fetch("http://localhost:8000/auth/register", 
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+          }),
+        }
+      );
 
-    setTimeout(() => {
-      onRegister();
-    }, 1200);
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.detail || "Registration failed.");
+        return;
+      }
+
+      setRegisterSuccess(true);
+
+      setTimeout(() => {
+        onRegister();
+      }, 1200);
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Cannot connect to backend.");
+    }
   };
 
   return (
     <div className="register-page">
 
-      {/* REGISTRATION SUCCESS NOTIFICATION */}
       {registerSuccess && (
         <div className="register-success">
           ✓ Registration successful
@@ -39,6 +65,7 @@ function Register({ onRegister, onBackToLogin }) {
       )}
 
       <div className="register-left">
+
         <div className="register-brand">
           <div className="register-logo">✦</div>
 
@@ -48,6 +75,7 @@ function Register({ onRegister, onBackToLogin }) {
         </div>
 
         <div className="register-content">
+
           <span className="register-label">
             AI INTERVIEW PLATFORM
           </span>
@@ -63,6 +91,7 @@ function Register({ onRegister, onBackToLogin }) {
           </p>
 
           <div className="register-features">
+
             <div>
               <span>✓</span>
               Personalized interview practice
@@ -77,12 +106,14 @@ function Register({ onRegister, onBackToLogin }) {
               <span>✓</span>
               Adaptive interview experience
             </div>
+
           </div>
         </div>
 
         <div className="register-footer-text">
           AI Interview Coach · Improve with every interview
         </div>
+
       </div>
 
       <div className="register-right">
@@ -90,6 +121,7 @@ function Register({ onRegister, onBackToLogin }) {
         <div className="register-card">
 
           <div className="register-card-heading">
+
             <span className="register-small-label">
               GET STARTED
             </span>
@@ -101,6 +133,7 @@ function Register({ onRegister, onBackToLogin }) {
             <p>
               Start your personalized interview journey.
             </p>
+
           </div>
 
           <form onSubmit={handleRegister}>

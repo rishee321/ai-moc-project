@@ -2,21 +2,184 @@ import { useState } from "react";
 import "./Result.css";
 import Practice from "./Practice.jsx";
 
-function Result({ answers = [], onRetry }) {
+function Result({ answers = [], onRetry, onBack, result = null }) {
   const [showPractice, setShowPractice] = useState(false);
+
+  // Backend se aaya result.
+  // Agar parent se result nahi mila to localStorage se try karenge.
+  const storedResult = (() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("selectedResult") || "null"
+      );
+    } catch {
+      return null;
+    }
+  })();
+
+  const selectedResult = result || storedResult || null;
+
+  /*
+    ============================================================
+    AI RESULT ONLY
+    ============================================================
+
+    Backend ke result_router / Gemini analysis se expected fields:
+
+    overall_score
+    technical_score
+    communication_score
+    problem_solving_score
+    strengths
+    weaknesses
+    suggestions
+    overall_feedback
+
+    IMPORTANT:
+    Yahan koi score calculate nahi ho raha.
+    Koi fixed/default score nahi hai.
+  */
+
+  const getScore = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+
+    const number = Number(value);
+
+    if (Number.isNaN(number)) {
+      return null;
+    }
+
+    return Math.round(number);
+  };
+
+  const overallScore = getScore(
+    selectedResult?.overall_score ??
+      selectedResult?.overallScore ??
+      selectedResult?.score
+  );
+
+  const technicalScore = getScore(
+    selectedResult?.technical_score ??
+      selectedResult?.technicalScore
+  );
+
+  const communicationScore = getScore(
+    selectedResult?.communication_score ??
+      selectedResult?.communicationScore
+  );
+
+  const problemSolvingScore = getScore(
+    selectedResult?.problem_solving_score ??
+      selectedResult?.problemSolvingScore
+  );
+
+  /*
+    ------------------------------------------------------------
+    Text / array normalization
+    ------------------------------------------------------------
+  */
+
+  const normalizeList = (value) => {
+    if (Array.isArray(value)) {
+      return value.filter(
+        (item) =>
+          item !== null &&
+          item !== undefined &&
+          String(item).trim() !== ""
+      );
+    }
+
+    if (typeof value === "string") {
+      return value
+        .split("\n")
+        .map((item) =>
+          item
+            .replace(/^[-•*]\s*/, "")
+            .replace(/^\d+[.)]\s*/, "")
+            .trim()
+        )
+        .filter(Boolean);
+    }
+
+    return [];
+  };
+
+  const strengths = normalizeList(
+    selectedResult?.strengths
+  );
+
+  const weaknesses = normalizeList(
+    selectedResult?.weaknesses
+  );
+
+  const suggestions = normalizeList(
+    selectedResult?.suggestions
+  );
+
+  const overallFeedback =
+    selectedResult?.overall_feedback ??
+    selectedResult?.overallFeedback ??
+    "";
 
   const answeredCount = answers.length;
 
-  // DEMO DYNAMIC SCORES
-  const communicationScore = Math.min(95, 72 + answeredCount * 2);
-  const technicalScore = Math.min(92, 68 + answeredCount * 2);
-  const confidenceScore = Math.min(94, 70 + answeredCount * 2);
+  const interviewName =
+    selectedResult?.role ||
+    selectedResult?.domain ||
+    selectedResult?.interview_name ||
+    selectedResult?.interviewName ||
+    "Interview";
 
-  const overallScore = Math.round(
-    (communicationScore + technicalScore + confidenceScore) / 3
-  );
+  /*
+    ------------------------------------------------------------
+    Score display helper
+    ------------------------------------------------------------
+  */
 
-  // PRACTICE MODE
+  const displayScore = (score) => {
+    return score === null ? "--" : score;
+  };
+
+  const scoreWidth = (score) => {
+    return score === null ? "0%" : `${score}%`;
+  };
+
+  /*
+    ------------------------------------------------------------
+    Performance label
+    ------------------------------------------------------------
+    This is only a label based on AI score.
+    It does NOT create/change the score.
+  */
+
+  const getPerformanceLabel = (score) => {
+    if (score === null) {
+      return "Analysis Pending";
+    }
+
+    if (score >= 80) {
+      return "Excellent Performance";
+    }
+
+    if (score >= 60) {
+      return "Good Performance";
+    }
+
+    if (score >= 40) {
+      return "Needs Improvement";
+    }
+
+    return "Needs More Practice";
+  };
+
+  /*
+    ------------------------------------------------------------
+    PRACTICE MODE
+    ------------------------------------------------------------
+  */
+
   if (showPractice) {
     return (
       <Practice
@@ -28,12 +191,13 @@ function Result({ answers = [], onRetry }) {
   return (
     <div className="result-page">
 
-      {/* HEADER */}
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
       <header className="result-header">
 
         <div className="logo">
-
           <div className="logo-icon">
             ✦
           </div>
@@ -41,25 +205,38 @@ function Result({ answers = [], onRetry }) {
           <span>
             Interview<span className="logo-plus">+</span>
           </span>
-
         </div>
 
-        <div className="result-status">
+        <div className="result-header-actions">
 
-          <span className="status-dot"></span>
+          <div className="result-status">
+            <span className="status-dot"></span>
+            INTERVIEW COMPLETED
+          </div>
 
-          INTERVIEW COMPLETED
+          {onBack && (
+            <button
+              className="result-back-btn"
+              onClick={onBack}
+            >
+              ← Results
+            </button>
+          )}
 
         </div>
 
       </header>
 
 
-      {/* MAIN */}
+      {/* ======================================================
+          MAIN
+      ====================================================== */}
 
       <main className="result-container">
 
-        {/* TOP */}
+        {/* ====================================================
+            TOP / OVERALL SCORE
+        ==================================================== */}
 
         <div className="result-top">
 
@@ -70,12 +247,19 @@ function Result({ answers = [], onRetry }) {
             </span>
 
             <h1>
-  <span className="interview-title">Your Interview</span>
-  <span>Performance</span>
-</h1>
+              <span className="interview-title">
+                {interviewName}
+              </span>
+
+              <span>
+                Performance
+              </span>
+            </h1>
+
             <p>
               Your interview has been analyzed by AI.
-              Review your performance and discover where you can improve.
+              Review your performance and discover where
+              you can improve.
             </p>
 
           </div>
@@ -88,7 +272,7 @@ function Result({ answers = [], onRetry }) {
             </span>
 
             <strong>
-              {overallScore}
+              {displayScore(overallScore)}
             </strong>
 
             <small>
@@ -96,7 +280,7 @@ function Result({ answers = [], onRetry }) {
             </small>
 
             <div className="score-status">
-              ✦ Good Performance
+              ✦ {getPerformanceLabel(overallScore)}
             </div>
 
           </div>
@@ -104,9 +288,13 @@ function Result({ answers = [], onRetry }) {
         </div>
 
 
-        {/* METRICS */}
+        {/* ====================================================
+            AI METRICS
+        ==================================================== */}
 
         <section className="result-metrics">
+
+          {/* Communication */}
 
           <div className="result-card">
 
@@ -115,14 +303,16 @@ function Result({ answers = [], onRetry }) {
             </span>
 
             <strong>
-              {communicationScore}
+              {displayScore(communicationScore)}
             </strong>
 
             <div className="result-progress">
 
               <span
                 style={{
-                  "--score-width": `${communicationScore}%`
+                  "--score-width": scoreWidth(
+                    communicationScore
+                  ),
                 }}
               ></span>
 
@@ -130,6 +320,8 @@ function Result({ answers = [], onRetry }) {
 
           </div>
 
+
+          {/* Technical */}
 
           <div className="result-card">
 
@@ -138,14 +330,16 @@ function Result({ answers = [], onRetry }) {
             </span>
 
             <strong>
-              {technicalScore}
+              {displayScore(technicalScore)}
             </strong>
 
             <div className="result-progress">
 
               <span
                 style={{
-                  "--score-width": `${technicalScore}%`
+                  "--score-width": scoreWidth(
+                    technicalScore
+                  ),
                 }}
               ></span>
 
@@ -154,21 +348,25 @@ function Result({ answers = [], onRetry }) {
           </div>
 
 
+          {/* Problem Solving */}
+
           <div className="result-card">
 
             <span>
-              CONFIDENCE
+              PROBLEM SOLVING
             </span>
 
             <strong>
-              {confidenceScore}
+              {displayScore(problemSolvingScore)}
             </strong>
 
             <div className="result-progress">
 
               <span
                 style={{
-                  "--score-width": `${confidenceScore}%`
+                  "--score-width": scoreWidth(
+                    problemSolvingScore
+                  ),
                 }}
               ></span>
 
@@ -179,7 +377,9 @@ function Result({ answers = [], onRetry }) {
         </section>
 
 
-        {/* PERFORMANCE */}
+        {/* ====================================================
+            PERFORMANCE BREAKDOWN
+        ==================================================== */}
 
         <section className="performance-chart">
 
@@ -200,7 +400,7 @@ function Result({ answers = [], onRetry }) {
             <div className="chart-score">
 
               <strong>
-                {overallScore}
+                {displayScore(overallScore)}
               </strong>
 
               <span>
@@ -214,6 +414,8 @@ function Result({ answers = [], onRetry }) {
 
           <div className="chart-bars">
 
+            {/* Communication */}
+
             <div className="chart-item">
 
               <div className="chart-label">
@@ -223,7 +425,7 @@ function Result({ answers = [], onRetry }) {
                 </span>
 
                 <strong>
-                  {communicationScore}
+                  {displayScore(communicationScore)}
                 </strong>
 
               </div>
@@ -232,7 +434,9 @@ function Result({ answers = [], onRetry }) {
 
                 <span
                   style={{
-                    "--score-width": `${communicationScore}%`
+                    "--score-width": scoreWidth(
+                      communicationScore
+                    ),
                   }}
                 ></span>
 
@@ -240,6 +444,8 @@ function Result({ answers = [], onRetry }) {
 
             </div>
 
+
+            {/* Technical */}
 
             <div className="chart-item">
 
@@ -250,7 +456,7 @@ function Result({ answers = [], onRetry }) {
                 </span>
 
                 <strong>
-                  {technicalScore}
+                  {displayScore(technicalScore)}
                 </strong>
 
               </div>
@@ -259,7 +465,9 @@ function Result({ answers = [], onRetry }) {
 
                 <span
                   style={{
-                    "--score-width": `${technicalScore}%`
+                    "--score-width": scoreWidth(
+                      technicalScore
+                    ),
                   }}
                 ></span>
 
@@ -268,16 +476,18 @@ function Result({ answers = [], onRetry }) {
             </div>
 
 
+            {/* Problem Solving */}
+
             <div className="chart-item">
 
               <div className="chart-label">
 
                 <span>
-                  Confidence
+                  Problem Solving
                 </span>
 
                 <strong>
-                  {confidenceScore}
+                  {displayScore(problemSolvingScore)}
                 </strong>
 
               </div>
@@ -286,7 +496,9 @@ function Result({ answers = [], onRetry }) {
 
                 <span
                   style={{
-                    "--score-width": `${confidenceScore}%`
+                    "--score-width": scoreWidth(
+                      problemSolvingScore
+                    ),
                   }}
                 ></span>
 
@@ -299,7 +511,9 @@ function Result({ answers = [], onRetry }) {
         </section>
 
 
-        {/* ANSWER SUMMARY */}
+        {/* ====================================================
+            ANSWER SUMMARY
+        ==================================================== */}
 
         <section className="analysis-card">
 
@@ -326,7 +540,9 @@ function Result({ answers = [], onRetry }) {
 
           <p>
             You completed {answeredCount} interview{" "}
-            {answeredCount === 1 ? "question" : "questions"}.
+            {answeredCount === 1
+              ? "question"
+              : "questions"}.
           </p>
 
 
@@ -338,7 +554,7 @@ function Result({ answers = [], onRetry }) {
 
                 <div
                   className="answer-summary-item"
-                  key={index}
+                  key={item?.id || index}
                 >
 
                   <span>
@@ -348,11 +564,15 @@ function Result({ answers = [], onRetry }) {
                   <div>
 
                     <strong>
-                      {item.questionText}
+                      {item?.questionText ||
+                        item?.question ||
+                        `Question ${index + 1}`}
                     </strong>
 
                     <p>
-                      {item.answer}
+                      {item?.answer ||
+                        item?.answer_text ||
+                        "No answer available."}
                     </p>
 
                   </div>
@@ -368,9 +588,46 @@ function Result({ answers = [], onRetry }) {
         </section>
 
 
-        {/* ANALYSIS */}
+        {/* ====================================================
+            AI OVERALL FEEDBACK
+        ==================================================== */}
+
+        {overallFeedback && (
+
+          <section className="ai-suggestion">
+
+            <div className="suggestion-icon">
+              ✦
+            </div>
+
+            <div>
+
+              <span>
+                AI OVERALL FEEDBACK
+              </span>
+
+              <h2>
+                Gemini Interview Analysis
+              </h2>
+
+              <p>
+                {overallFeedback}
+              </p>
+
+            </div>
+
+          </section>
+
+        )}
+
+
+        {/* ====================================================
+            AI STRENGTHS + WEAKNESSES
+        ==================================================== */}
 
         <section className="analysis-grid">
+
+          {/* Strengths */}
 
           <div className="analysis-card">
 
@@ -395,24 +652,32 @@ function Result({ answers = [], onRetry }) {
             </div>
 
 
-            <ul>
+            {strengths.length > 0 ? (
 
-              <li>
-                Clear and understandable communication
-              </li>
+              <ul>
 
-              <li>
-                Good confidence while answering
-              </li>
+                {strengths.map((item, index) => (
 
-              <li>
-                Structured response with relevant points
-              </li>
+                  <li key={index}>
+                    {item}
+                  </li>
 
-            </ul>
+                ))}
+
+              </ul>
+
+            ) : (
+
+              <p>
+                AI strength analysis is not available yet.
+              </p>
+
+            )}
 
           </div>
 
+
+          {/* Weaknesses */}
 
           <div className="analysis-card">
 
@@ -437,57 +702,77 @@ function Result({ answers = [], onRetry }) {
             </div>
 
 
-            <ul>
+            {weaknesses.length > 0 ? (
 
-              <li>
-                Add more technical depth to your answers
-              </li>
+              <ul>
 
-              <li>
-                Use specific examples from projects
-              </li>
+                {weaknesses.map((item, index) => (
 
-              <li>
-                Explain your approach step by step
-              </li>
+                  <li key={index}>
+                    {item}
+                  </li>
 
-            </ul>
+                ))}
 
-          </div>
+              </ul>
 
-        </section>
+            ) : (
 
+              <p>
+                AI improvement analysis is not available yet.
+              </p>
 
-        {/* AI SUGGESTION */}
-
-        <section className="ai-suggestion">
-
-          <div className="suggestion-icon">
-            ✦
-          </div>
-
-          <div>
-
-            <span>
-              PERSONALIZED AI SUGGESTION
-            </span>
-
-            <h2>
-              Strengthen your technical explanations
-            </h2>
-
-            <p>
-              Your communication is strong. Focus on explaining
-              technical concepts with practical examples and
-              project-based experience.
-            </p>
+            )}
 
           </div>
 
         </section>
 
 
-        {/* ACTIONS */}
+        {/* ====================================================
+            AI SUGGESTIONS
+        ==================================================== */}
+
+        {suggestions.length > 0 && (
+
+          <section className="ai-suggestion">
+
+            <div className="suggestion-icon">
+              ✦
+            </div>
+
+            <div>
+
+              <span>
+                PERSONALIZED AI SUGGESTIONS
+              </span>
+
+              <h2>
+                What You Should Work On
+              </h2>
+
+              <ul>
+
+                {suggestions.map((item, index) => (
+
+                  <li key={index}>
+                    {item}
+                  </li>
+
+                ))}
+
+              </ul>
+
+            </div>
+
+          </section>
+
+        )}
+
+
+        {/* ====================================================
+            ACTIONS
+        ==================================================== */}
 
         <div className="result-actions">
 
@@ -495,7 +780,6 @@ function Result({ answers = [], onRetry }) {
             className="practice-btn"
             onClick={() => setShowPractice(true)}
           >
-
             Practice Weak Area
 
             <span>
@@ -509,9 +793,7 @@ function Result({ answers = [], onRetry }) {
             className="retry-btn"
             onClick={onRetry}
           >
-
             Take Another Interview
-
           </button>
 
         </div>
@@ -519,7 +801,9 @@ function Result({ answers = [], onRetry }) {
       </main>
 
 
-      {/* FOOTER */}
+      {/* ======================================================
+          FOOTER
+      ====================================================== */}
 
       <footer className="result-footer">
 

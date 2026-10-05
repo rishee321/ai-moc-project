@@ -1,12 +1,14 @@
 import { useState } from "react";
 import "./Login.css";
+import { apiRequest } from "./api/api";
 
 function Login({ onLogin, onRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -14,11 +16,46 @@ function Login({ onLogin, onRegister }) {
       return;
     }
 
-    setLoginSuccess(true);
+    setLoading(true);
+    setLoginSuccess(false);
 
-    setTimeout(() => {
-      onLogin();
-    }, 1200);
+    try {
+      // Connect with FastAPI backend
+      const data = await apiRequest("/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      console.log("Login response:", data);
+
+      // Save JWT token
+      localStorage.setItem(
+        "access_token",
+        data.access_token
+      );
+
+      setLoginSuccess(true);
+
+      // Open dashboard after successful login
+      setTimeout(() => {
+        onLogin(data);
+      }, 800);
+
+    } catch (error) {
+      console.error("Login error:", error);
+
+      alert(
+        error.message || "Login failed. Please check your email and password."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -119,6 +156,7 @@ function Login({ onLogin, onRegister }) {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
               />
 
             </div>
@@ -135,10 +173,14 @@ function Login({ onLogin, onRegister }) {
                 <button
                   type="button"
                   onClick={() => {
-                    const email = prompt("Enter your email address:");
+                    const resetEmail = prompt(
+                      "Enter your email address:"
+                    );
 
-                    if (email) {
-                      alert(`Password reset link sent to ${email}`);
+                    if (resetEmail) {
+                      alert(
+                        `Password reset link sent to ${resetEmail}`
+                      );
                     }
                   }}
                 >
@@ -152,6 +194,7 @@ function Login({ onLogin, onRegister }) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
 
             </div>
@@ -160,9 +203,10 @@ function Login({ onLogin, onRegister }) {
             <button
               type="submit"
               className="login-button"
+              disabled={loading}
             >
-              Sign In
-              <span>→</span>
+              {loading ? "Signing in..." : "Sign In"}
+              {!loading && <span>→</span>}
             </button>
 
           </form>

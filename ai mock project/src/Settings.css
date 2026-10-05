@@ -1,0 +1,1412 @@
+/* =========================================================
+   INTERVIEW+ — PREMIUM SETTINGS
+   Theme: Chocolate Brown + Warm Cream + Orange
+   Light / Dark / System Theme Supported
+========================================================= */
+
+:root {
+  --navy: #3e2723;
+  --navy-2: #2b1b14;
+  --navy-3: #543a30;
+  --navy-4: #543a30;
+
+  --cream: #fff8ee;
+  --cream-2: #fffcf8;
+  --cream-3: #f8efe4;
+
+  --gold: #ff8a00;
+  --gold-2: #ff8a00;
+  --gold-dark: #c65e00;
+  --gold-soft: rgba(255, 138, 0, 0.14);
+
+  --white: #ffffff;
+
+  --text: #1f1f1f;
+  --muted: #4b4b4b;
+
+  --border: #e8ddd1;
+  --border-soft: #edf0f1;
+
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+
+  --shadow-sm: 0 8px 25px rgba(62, 39, 35, 0.06);
+  --shadow-md: 0 18px 45px rgba(62, 39, 35, 0.08);
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.settings-page {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 92% 8%,
+      rgba(255, 138, 0, 0.12),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 5% 90%,
+      rgba(62, 39, 35, 0.035),
+      transparent 28%
+    ),
+    var(--cream);
+
+  color: var(--text);
+
+  font-family: "DM Sans", sans-serif;
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+
+  position: relative;
+
+  overflow-x: hidden;
+}
+
+
+/* subtle premium grid */
+
+.settings-page::before {
+  content: "";
+
+  position: fixed;
+
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(62, 39, 35, 0.022) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(62, 39, 35, 0.022) 1px,
+      transparent 1px
+    );
+
+  background-size: 46px 46px;
+
+  pointer-events: none;
+
+  z-index: 0;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.settings-header {
+  height: 78px;
+
+  background:
+    rgba(62, 39, 35, 0.97);
+
+  border-bottom:
+    1px solid rgba(255, 138, 0, 0.14);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 6%;
+
+  box-sizing: border-box;
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 100;
+
+  box-shadow:
+    0 10px 35px rgba(62, 39, 35, 0.12);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.settings-logo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  letter-spacing: -0.5px;
+
+  color: var(--white);
+}
+
+.settings-logo > span:first-child {
+  width: 35px;
+  height: 35px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--gold),
+      var(--gold-dark)
+    );
+
+  color: var(--navy);
+
+  font-size: 15px;
+
+  box-shadow:
+    0 7px 20px rgba(255, 138, 0, 0.22);
+}
+
+.settings-logo > span:last-child {
+  color: var(--gold);
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.settings-back-btn {
+  border:
+    1px solid rgba(255, 138, 0, 0.28);
+
+  background:
+    rgba(255, 255, 255, 0.04);
+
+  color: var(--cream);
+
+  padding: 10px 18px;
+
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 650;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.settings-back-btn:hover {
+  background:
+    rgba(255, 138, 0, 0.1);
+
+  border-color:
+    rgba(255, 138, 0, 0.55);
+
+  color: var(--gold);
+
+  transform: translateX(-2px);
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.settings-container {
+  max-width: 980px;
+
+  margin: 0 auto;
+
+  padding: 48px 25px 75px;
+
+  position: relative;
+
+  z-index: 1;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.settings-title {
+  margin-bottom: 30px;
+}
+
+.settings-title p {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin: 0 0 9px;
+
+  color: var(--gold-dark);
+
+  font-size: 10px;
+
+  font-weight: 850;
+
+  letter-spacing: 2px;
+}
+
+.settings-title p::before {
+  content: "";
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: var(--gold);
+
+  box-shadow:
+    0 0 0 5px rgba(255, 138, 0, 0.13);
+}
+
+.settings-title h1 {
+  margin: 0;
+
+  color: var(--navy);
+
+  font-size: clamp(34px, 4vw, 42px);
+
+  line-height: 1.1;
+
+  letter-spacing: -1.5px;
+
+  font-weight: 800;
+}
+
+.settings-title > span {
+  display: block;
+
+  margin-top: 9px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.settings-card {
+  margin-top: 20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 253, 247, 0.98)
+    );
+
+  border:
+    1px solid rgba(62, 39, 35, 0.1);
+
+  border-radius: 18px;
+
+  padding: 27px 28px;
+
+  box-shadow: var(--shadow-sm);
+
+  position: relative;
+
+  overflow: hidden;
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* premium accent */
+
+.settings-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--navy),
+      var(--gold),
+      transparent
+    );
+}
+
+
+/* =========================================================
+   SECTION HEADING
+========================================================= */
+
+.settings-section-heading {
+  margin-bottom: 18px;
+}
+
+.settings-section-heading h2 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 19px;
+
+  line-height: 1.3;
+
+  font-weight: 800;
+
+  letter-spacing: -0.3px;
+}
+
+.settings-section-heading p {
+  margin: 5px 0 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   OPTIONS
+========================================================= */
+
+.settings-option {
+  width: 100%;
+
+  padding: 16px 4px;
+
+  border: none;
+
+  border-top: 1px solid var(--border-soft);
+
+  background: transparent;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  transition:
+    background 0.2s ease,
+    padding 0.2s ease;
+}
+
+.settings-option:first-of-type {
+  border-top: none;
+}
+
+.settings-option:hover {
+  padding-left: 9px;
+
+  padding-right: 9px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 138, 0, 0.08),
+      transparent
+    );
+}
+
+.settings-option strong,
+.settings-row strong,
+.settings-toggle-row strong {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 13px;
+
+  font-weight: 750;
+}
+
+.settings-option span,
+.settings-row span,
+.settings-toggle-row span {
+  display: block;
+
+  margin-top: 5px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+.settings-option b {
+  color: var(--gold-dark);
+
+  font-size: 23px;
+
+  font-weight: 400;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.settings-option:hover b {
+  color: var(--navy);
+
+  transform: translateX(3px);
+}
+
+
+/* =========================================================
+   ROW
+========================================================= */
+
+.settings-row {
+  min-height: 65px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+.settings-row select,
+.settings-select {
+  min-width: 145px;
+
+  height: 40px;
+
+  padding: 0 12px;
+
+  border:
+    1px solid #e8ddd1;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fffcf8,
+      #fffcf8
+    );
+
+  color: var(--text);
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settings-row select:hover,
+.settings-select:hover {
+  border-color:
+    rgba(198, 94, 0, 0.55);
+}
+
+.settings-row select:focus,
+.settings-select:focus {
+  border-color: var(--gold-dark);
+
+  box-shadow:
+    0 0 0 4px rgba(255, 138, 0, 0.14);
+}
+
+
+/* =========================================================
+   TOGGLE ROW
+========================================================= */
+
+.settings-toggle-row {
+  min-height: 65px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  border-bottom: 1px solid var(--border-soft);
+
+  cursor: pointer;
+}
+
+.settings-toggle-row:last-child {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
+.settings-toggle-row input,
+.settings-row input {
+  width: 19px;
+  height: 19px;
+
+  accent-color: var(--gold-dark);
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   CUSTOM TOGGLE
+========================================================= */
+
+.toggle {
+  position: relative;
+
+  width: 42px;
+  height: 23px;
+
+  display: inline-block;
+
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+
+  width: 0;
+  height: 0;
+}
+
+.toggle span {
+  position: absolute;
+
+  inset: 0;
+
+  background: #e8ddd1;
+
+  border-radius: 20px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease;
+}
+
+.toggle span::before {
+  content: "";
+
+  position: absolute;
+
+  width: 17px;
+  height: 17px;
+
+  left: 3px;
+  top: 3px;
+
+  background: var(--white);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 2px 5px rgba(62, 39, 35, 0.18);
+
+  transition:
+    transform 0.25s ease;
+}
+
+.toggle input:checked + span {
+  background:
+    linear-gradient(
+      135deg,
+      var(--gold),
+      var(--gold-dark)
+    );
+}
+
+.toggle input:checked + span::before {
+  transform: translateX(19px);
+}
+
+
+/* =========================================================
+   EXTRA SECTIONS
+========================================================= */
+
+.settings-section {
+  margin-top: 30px;
+}
+
+.settings-section-title {
+  margin-bottom: 10px;
+}
+
+.settings-section-title h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 18px;
+}
+
+.settings-section-title p {
+  margin: 5px 0 0;
+
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   ACTION BUTTON
+========================================================= */
+
+.settings-action-btn {
+  min-width: 82px;
+
+  height: 38px;
+
+  padding: 0 15px;
+
+  border:
+    1px solid rgba(62, 39, 35, 0.15);
+
+  border-radius: 8px;
+
+  background:
+    var(--navy);
+
+  color: var(--white);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.settings-action-btn:hover {
+  background: var(--navy-2);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 18px rgba(62, 39, 35, 0.15);
+}
+
+
+/* =========================================================
+   DANGER BUTTON
+========================================================= */
+
+.danger-btn {
+  min-width: 110px;
+
+  height: 38px;
+
+  padding: 0 14px;
+
+  border:
+    1px solid rgba(220, 38, 38, 0.2);
+
+  border-radius: 8px;
+
+  background: var(--danger-bg);
+
+  color: var(--danger);
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.danger-btn:hover {
+  background: #fef2f2;
+
+  border-color:
+    rgba(220, 38, 38, 0.38);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   DANGER OPTION
+========================================================= */
+
+.settings-danger-option {
+  width: 100%;
+
+  padding: 13px 0;
+
+  margin-top: 8px;
+
+  border: none;
+
+  background: transparent;
+
+  color: var(--danger);
+
+  text-align: left;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 650;
+}
+
+.settings-danger-option:hover {
+  color: #dc2626;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.logout-section {
+  margin-bottom: 30px;
+}
+
+.settings-logout-card {
+  padding: 19px 25px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffcf8,
+      #fef2f2
+    );
+}
+
+.settings-logout-btn,
+.logout-btn {
+  min-width: 88px;
+
+  height: 39px;
+
+  padding: 0 17px;
+
+  border:
+    1px solid rgba(220, 38, 38, 0.25);
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dc2626,
+      #dc2626
+    );
+
+  color: var(--white);
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.settings-logout-btn {
+  width: 100%;
+}
+
+.settings-logout-btn:hover,
+.logout-btn:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #dc2626,
+      #dc2626
+    );
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 9px 20px rgba(220, 38, 38, 0.18);
+}
+
+
+/* =========================================================
+   DARK THEME
+   Activated by Settings.jsx:
+   body.theme-dark
+========================================================= */
+
+body.theme-dark {
+  background: #2b1b14;
+
+  color: #f8efe4;
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+body.theme-dark .settings-page {
+  background:
+    radial-gradient(
+      circle at 90% 8%,
+      rgba(255, 138, 0, 0.07),
+      transparent 25%
+    ),
+    #2b1b14;
+
+  color: #f8efe4;
+}
+
+body.theme-dark .settings-page::before {
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px
+    );
+}
+
+
+/* =========================================================
+   DARK HEADER
+========================================================= */
+
+body.theme-dark .settings-header {
+  background:
+    rgba(43, 27, 20, 0.97);
+
+  border-color:
+    rgba(255, 138, 0, 0.15);
+}
+
+body.theme-dark .settings-logo {
+  color: #ffffff;
+}
+
+body.theme-dark .settings-logo > span:last-child {
+  color: var(--gold);
+}
+
+body.theme-dark .settings-back-btn {
+  background:
+    rgba(255, 255, 255, 0.04);
+
+  border-color:
+    rgba(255, 138, 0, 0.25);
+
+  color: #fff8ee;
+}
+
+body.theme-dark .settings-back-btn:hover {
+  background:
+    rgba(255, 138, 0, 0.1);
+
+  color: var(--gold);
+}
+
+
+/* =========================================================
+   DARK TITLE
+========================================================= */
+
+body.theme-dark .settings-title h1 {
+  color: #fff8ee;
+}
+
+body.theme-dark .settings-title p {
+  color: var(--gold);
+}
+
+body.theme-dark .settings-title > span {
+  color: #776f69;
+}
+
+
+/* =========================================================
+   DARK CARDS
+========================================================= */
+
+body.theme-dark .settings-card {
+  background:
+    linear-gradient(
+      180deg,
+      #2b1b14,
+      #3e2723
+    );
+
+  border-color:
+    rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-dark .settings-card::before {
+  background:
+    linear-gradient(
+      90deg,
+      var(--gold-dark),
+      var(--gold),
+      transparent
+    );
+}
+
+
+/* =========================================================
+   DARK HEADINGS
+========================================================= */
+
+body.theme-dark .settings-section-heading h2,
+body.theme-dark .settings-section-title h3 {
+  color: #fff8ee;
+}
+
+body.theme-dark .settings-section-heading p,
+body.theme-dark .settings-section-title p {
+  color: #776f69;
+}
+
+
+/* =========================================================
+   DARK OPTIONS
+========================================================= */
+
+body.theme-dark .settings-option {
+  border-color:
+    rgba(255, 255, 255, 0.07);
+}
+
+body.theme-dark .settings-option strong,
+body.theme-dark .settings-row strong,
+body.theme-dark .settings-toggle-row strong {
+  color: #f8efe4;
+}
+
+body.theme-dark .settings-option span,
+body.theme-dark .settings-row span,
+body.theme-dark .settings-toggle-row span {
+  color: #776f69;
+}
+
+body.theme-dark .settings-option b {
+  color: var(--gold);
+}
+
+body.theme-dark .settings-option:hover {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 138, 0, 0.07),
+      transparent
+    );
+}
+
+
+/* =========================================================
+   DARK ROWS
+========================================================= */
+
+body.theme-dark .settings-row,
+body.theme-dark .settings-toggle-row {
+  border-color:
+    rgba(255, 255, 255, 0.07);
+}
+
+
+/* =========================================================
+   DARK SELECT
+========================================================= */
+
+body.theme-dark .settings-row select,
+body.theme-dark .settings-select {
+  background:
+    #2b1b14;
+
+  border-color:
+    rgba(255, 138, 0, 0.2);
+
+  color: #fff8ee;
+}
+
+body.theme-dark .settings-row select option {
+  background: #2b1b14;
+
+  color: #fff8ee;
+}
+
+body.theme-dark .settings-row select:focus,
+body.theme-dark .settings-select:focus {
+  border-color: var(--gold);
+
+  box-shadow:
+    0 0 0 4px rgba(255, 138, 0, 0.12);
+}
+
+
+/* =========================================================
+   DARK CHECKBOX
+========================================================= */
+
+body.theme-dark .settings-toggle-row input,
+body.theme-dark .settings-row input {
+  accent-color: var(--gold);
+}
+
+
+/* =========================================================
+   DARK CUSTOM TOGGLE
+========================================================= */
+
+body.theme-dark .toggle span {
+  background: #543a30;
+}
+
+body.theme-dark .toggle input:checked + span {
+  background:
+    linear-gradient(
+      135deg,
+      var(--gold),
+      var(--gold-dark)
+    );
+}
+
+
+/* =========================================================
+   DARK ACTION
+========================================================= */
+
+body.theme-dark .settings-action-btn {
+  background:
+    #543a30;
+
+  border-color:
+    rgba(255, 138, 0, 0.2);
+
+  color: var(--gold);
+}
+
+body.theme-dark .settings-action-btn:hover {
+  background: #543a30;
+}
+
+
+/* =========================================================
+   DARK DANGER
+========================================================= */
+
+body.theme-dark .danger-btn,
+body.theme-dark .settings-logout-btn,
+body.theme-dark .logout-btn {
+  background:
+    #7f1d1d;
+
+  border-color:
+    rgba(255, 150, 150, 0.2);
+
+  color: #fecaca;
+}
+
+body.theme-dark .danger-btn:hover,
+body.theme-dark .settings-logout-btn:hover,
+body.theme-dark .logout-btn:hover {
+  background: #7f1d1d;
+}
+
+
+/* =========================================================
+   DARK LOGOUT CARD
+========================================================= */
+
+body.theme-dark .settings-logout-card {
+  background:
+    linear-gradient(
+      180deg,
+      #2b1b14,
+      #2b1b14
+    );
+
+  border-color:
+    rgba(255, 120, 120, 0.12);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .settings-header {
+    height: 70px;
+
+    padding: 0 20px;
+  }
+
+  .settings-logo {
+    font-size: 19px;
+  }
+
+  .settings-logo > span:first-child {
+    width: 31px;
+    height: 31px;
+
+    font-size: 13px;
+
+    border-radius: 9px;
+  }
+
+  .settings-back-btn {
+    padding: 9px 13px;
+
+    font-size: 11px;
+  }
+
+  .settings-container {
+    padding: 32px 18px 50px;
+  }
+
+  .settings-title {
+    margin-bottom: 24px;
+  }
+
+  .settings-title h1 {
+    font-size: 28px;
+
+    letter-spacing: -1px;
+  }
+
+  .settings-title > span {
+    font-size: 13px;
+  }
+
+  .settings-card {
+    padding: 21px 20px;
+
+    margin-top: 17px;
+
+    border-radius: 16px;
+  }
+
+  .settings-section-heading h2 {
+    font-size: 18px;
+  }
+
+  .settings-section-heading p {
+    font-size: 11px;
+  }
+
+  .settings-row,
+  .settings-toggle-row {
+    align-items: flex-start;
+
+    padding: 15px 0;
+
+    gap: 12px;
+  }
+
+  .settings-row select,
+  .settings-select {
+    min-width: 110px;
+
+    flex-shrink: 0;
+  }
+
+  .settings-option strong,
+  .settings-row strong,
+  .settings-toggle-row strong {
+    font-size: 12px;
+  }
+
+  .settings-option span,
+  .settings-row span,
+  .settings-toggle-row span {
+    font-size: 10px;
+  }
+
+  .settings-action-btn,
+  .danger-btn,
+  .logout-btn {
+    white-space: nowrap;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .settings-header {
+    padding: 0 15px;
+  }
+
+  .settings-logo {
+    font-size: 17px;
+  }
+
+  .settings-logo > span:first-child {
+    width: 29px;
+    height: 29px;
+  }
+
+  .settings-back-btn {
+    padding: 8px 10px;
+
+    font-size: 10px;
+  }
+
+  .settings-container {
+    padding: 27px 14px 42px;
+  }
+
+  .settings-title h1 {
+    font-size: 26px;
+  }
+
+  .settings-card {
+    padding: 19px 16px;
+  }
+
+  .settings-row select,
+  .settings-select {
+    min-width: 95px;
+  }
+
+  .settings-action-btn,
+  .danger-btn,
+  .logout-btn {
+    min-width: 75px;
+
+    padding: 0 10px;
+
+    font-size: 10px;
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.settings-back-btn:focus-visible,
+.settings-option:focus-visible,
+.settings-row select:focus-visible,
+.settings-toggle-row input:focus-visible,
+.settings-action-btn:focus-visible,
+.danger-btn:focus-visible,
+.logout-btn:focus-visible {
+  outline:
+    3px solid rgba(255, 138, 0, 0.3);
+
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .settings-page *,
+  .settings-page *::before,
+  .settings-page *::after {
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+}

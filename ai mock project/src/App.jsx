@@ -1,35 +1,439 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import Setup from "./setup.jsx";
+
+import Dashboard from "./Dashboard.jsx";
+import History from "./History.jsx";
+import Setup from "./Setup.jsx";
 import Login from "./Login.jsx";
 import Register from "./Register.jsx";
 import Interview from "./Interview.jsx";
 import Result from "./Result.jsx";
-
+import Practice from "./Practice.jsx";
+import Results from "./Results.jsx";
+import Profile from "./Profile.jsx";
+import Resume from "./Resume.jsx";
+import Settings from "./Settings.jsx";
 
 function App() {
-  const [page, setPage] = useState("home");
+  // =========================================================
+  // PAGE + HISTORY STATE
+  // =========================================================
+
+  const [page, setPage] = useState(() => {
+    const savedPage = sessionStorage.getItem("currentPage");
+    return savedPage || "home";
+  });
+
+  const [pageHistory, setPageHistory] = useState(() => {
+    try {
+      const savedHistory = sessionStorage.getItem("pageHistory");
+
+      if (savedHistory) {
+        const parsed = JSON.parse(savedHistory);
+
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error("Page history error:", error);
+    }
+
+    return ["home"];
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem("isLoggedIn") === "true"
+  );
+
+  // =========================================================
+  // PROTECTED PAGES
+  // =========================================================
+
+  const protectedPages = [
+    "dashboard",
+    "history",
+    "results",
+    "profile",
+    "resume",
+    "settings",
+    "practice",
+    "setup",
+    "interview",
+    "result",
+  ];
+
+  // =========================================================
+  // SAVE CURRENT PAGE
+  // =========================================================
+
+  useEffect(() => {
+    sessionStorage.setItem("currentPage", page);
+  }, [page]);
+
+  // =========================================================
+  // SAVE PAGE HISTORY
+  // =========================================================
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      "pageHistory",
+      JSON.stringify(pageHistory)
+    );
+  }, [pageHistory]);
+
+  // =========================================================
+  // PAGE NAVIGATION
+  // =========================================================
 
   const goToPage = (nextPage) => {
-    localStorage.setItem("interviewPage", nextPage);
+    if (!nextPage || nextPage === page) {
+      return;
+    }
+
+    setPageHistory((previousHistory) => {
+      const updatedHistory = [
+        ...previousHistory,
+        nextPage,
+      ];
+
+      return updatedHistory.slice(-30);
+    });
+
+    sessionStorage.setItem("currentPage", nextPage);
     setPage(nextPage);
   };
 
+  // =========================================================
+  // GO BACK ONE PAGE
+  // =========================================================
+
+  const goBack = () => {
+    setPageHistory((previousHistory) => {
+      if (previousHistory.length <= 1) {
+        return previousHistory;
+      }
+
+      const updatedHistory = [
+        ...previousHistory,
+      ];
+
+      updatedHistory.pop();
+
+      const previousPage =
+        updatedHistory[updatedHistory.length - 1] || "home";
+
+      sessionStorage.setItem(
+        "currentPage",
+        previousPage
+      );
+
+      setPage(previousPage);
+
+      return updatedHistory;
+    });
+  };
+
+  // =========================================================
+  // LOGIN PROTECTION
+  // =========================================================
+
+  useEffect(() => {
+    if (
+      protectedPages.includes(page) &&
+      !isAuthenticated
+    ) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        page
+      );
+
+      setPage("login");
+
+      setPageHistory((previousHistory) => {
+        const history = [...previousHistory];
+
+        if (history[history.length - 1] !== "login") {
+          history.push("login");
+        }
+
+        return history;
+      });
+    }
+  }, [page, isAuthenticated]);
+
+  // =========================================================
+  // REQUIRE LOGIN
+  // =========================================================
+
+  const requireLogin = (targetPage) => {
+    if (isAuthenticated) {
+      goToPage(targetPage);
+    } else {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        targetPage
+      );
+
+      goToPage("login");
+    }
+  };
+
+  // =========================================================
   // LOGIN PAGE
+  // =========================================================
+
   if (page === "login") {
     return (
       <Login
         onLogin={() => {
-          goToPage("setup");
+          localStorage.setItem(
+            "isLoggedIn",
+            "true"
+          );
+
+          setIsAuthenticated(true);
+
+          const redirectPage =
+            localStorage.getItem(
+              "redirectAfterLogin"
+            );
+
+          localStorage.removeItem(
+            "redirectAfterLogin"
+          );
+
+          goToPage(
+            redirectPage || "dashboard"
+          );
         }}
         onRegister={() => {
           goToPage("register");
+        }}
+        onBack={() => {
+          goBack();
         }}
       />
     );
   }
 
+  // =========================================================
+  // DASHBOARD PAGE
+  // =========================================================
+
+  if (page === "dashboard") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "dashboard"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Dashboard
+        onBack={goBack}
+        onNewInterview={() => {
+          requireLogin("setup");
+        }}
+        onHistory={() => {
+          requireLogin("history");
+        }}
+        onPractice={() => {
+          requireLogin("practice");
+        }}
+        onResults={() => {
+          requireLogin("results");
+        }}
+        onProfile={() => {
+          requireLogin("profile");
+        }}
+        onResume={() => {
+          requireLogin("resume");
+        }}
+        onSettings={() => {
+          requireLogin("settings");
+        }}
+      />
+    );
+  }
+
+  // =========================================================
+  // HISTORY PAGE
+  // =========================================================
+
+  if (page === "history") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "history"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <History
+        onBack={goBack}
+        onViewResult={(interview) => {
+          localStorage.setItem(
+            "selectedInterviewResult",
+            JSON.stringify(interview)
+          );
+
+          goToPage("result");
+        }}
+      />
+    );
+  }
+
+  // =========================================================
+  // RESULTS PAGE
+  // =========================================================
+
+  if (page === "results") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "results"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Results
+        onBack={goBack}
+        onNewInterview={() => {
+          requireLogin("setup");
+        }}
+        onViewResult={(result) => {
+          localStorage.setItem(
+            "selectedResult",
+            JSON.stringify(result)
+          );
+
+          goToPage("result");
+        }}
+      />
+    );
+  }
+
+  // =========================================================
+  // PROFILE PAGE
+  // =========================================================
+
+  if (page === "profile") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "profile"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Profile
+        onBack={goBack}
+      />
+    );
+  }
+
+  // =========================================================
+  // RESUME PAGE
+  // =========================================================
+
+  if (page === "resume") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "resume"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Resume
+        onBack={goBack}
+      />
+    );
+  }
+
+  // =========================================================
+  // SETTINGS PAGE
+  // =========================================================
+
+  if (page === "settings") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "settings"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Settings
+        onBack={(destination) => {
+          if (destination === "login") {
+            setIsAuthenticated(false);
+
+            localStorage.removeItem(
+              "isLoggedIn"
+            );
+
+            goToPage("login");
+          } else {
+            goBack();
+          }
+        }}
+      />
+    );
+  }
+
+  // =========================================================
+  // PRACTICE PAGE
+  // =========================================================
+
+  if (page === "practice") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "practice"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    return (
+      <Practice
+        onBack={goBack}
+      />
+    );
+  }
+
+  // =========================================================
   // REGISTER PAGE
+  // =========================================================
+
   if (page === "register") {
     return (
       <Register
@@ -37,16 +441,31 @@ function App() {
           goToPage("login");
         }}
         onBackToLogin={() => {
-          goToPage("login");
+          goBack();
         }}
       />
     );
   }
 
+  // =========================================================
   // SETUP PAGE
+  // =========================================================
+
   if (page === "setup") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "setup"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
     return (
       <Setup
+        onBack={goBack}
         onStartInterview={(config) => {
           localStorage.setItem(
             "interviewConfig",
@@ -59,291 +478,1019 @@ function App() {
     );
   }
 
+  // =========================================================
   // INTERVIEW PAGE
-if (page === "interview") {
-  const savedConfig = JSON.parse(
-    localStorage.getItem("interviewConfig") || "null"
-  );
+  // =========================================================
 
-  return (
-    <Interview
-      role={savedConfig?.role || "Frontend Developer"}
-      type={savedConfig?.type || "Technical"}
-      experience={savedConfig?.experience || "Fresher"}
-      difficulty={savedConfig?.difficulty || "Adaptive"}
-      questions={savedConfig?.questions || "10"}
-      onComplete={() => goToPage("result")}
-    />
-  );
-}
+  if (page === "interview") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "interview"
+      );
+
+      setPage("login");
+
+      return null;
+    }
+
+    const savedConfig = JSON.parse(
+      localStorage.getItem(
+        "interviewConfig"
+      ) || "null"
+    );
+
+    return (
+      <Interview
+        role={
+          savedConfig?.role ||
+          "Frontend Developer"
+        }
+        type={
+          savedConfig?.type ||
+          "Technical"
+        }
+        experience={
+          savedConfig?.experience ||
+          "Fresher"
+        }
+        difficulty={
+          savedConfig?.difficulty ||
+          "Adaptive"
+        }
+        questions={
+          savedConfig?.questions ||
+          "10"
+        }
+        interviewId={
+          savedConfig?.interviewId
+        }
+        onBack={goBack}
+        onComplete={() => {
+          goToPage("result");
+        }}
+      />
+    );
+  }
+
+  // =========================================================
   // RESULT PAGE
-if (page === "result") {
-  const savedAnswers = JSON.parse(
-    localStorage.getItem("interviewAnswers") || "[]"
-  );
+  // =========================================================
 
-  const handleRetry = () => {
-    localStorage.removeItem("interviewState");
-    localStorage.removeItem("interviewAnswers");
+  if (page === "result") {
+    if (!isAuthenticated) {
+      localStorage.setItem(
+        "redirectAfterLogin",
+        "result"
+      );
 
-    goToPage("setup");
-  };
+      setPage("login");
 
-  return (
-    <Result
-      answers={savedAnswers}
-      onRetry={handleRetry}
-    />
-  );
-}
+      return null;
+    }
 
-// RESULT PAGE
-if (page === "result") {
-  const savedAnswers = JSON.parse(
-    localStorage.getItem("interviewAnswers") || "[]"
-  );
+    const savedAnswers = JSON.parse(
+      localStorage.getItem(
+        "interviewAnswers"
+      ) || "[]"
+    );
 
-  const handleRetry = () => {
-    localStorage.removeItem("interviewState");
-    localStorage.removeItem("interviewAnswers");
+    const selectedResult = JSON.parse(
+      localStorage.getItem(
+        "selectedResult"
+      ) || "null"
+    );
 
-    goToPage("setup");
-  };
+    return (
+      <Result
+        answers={
+          selectedResult?.answers ||
+          savedAnswers
+        }
+        result={
+          selectedResult || null
+        }
+        onRetry={() => {
+          localStorage.removeItem(
+            "interviewState"
+          );
 
-  return (
-    <Result
-      answers={savedAnswers}
-      onRetry={handleRetry}
-    />
-  );
-}
+          localStorage.removeItem(
+            "interviewAnswers"
+          );
 
+          localStorage.removeItem(
+            "selectedResult"
+          );
+
+          goToPage("setup");
+        }}
+        onBack={goBack}
+      />
+    );
+  }
+
+  // =========================================================
   // HOME PAGE
+  // =========================================================
+
   return (
     <div className="app">
 
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
+
       <header className="topbar">
 
-        <div className="logo">
-          <div className="logo-icon">✦</div>
+        <button
+          className="brand-button"
+          onClick={() => {
+            setPageHistory(["home"]);
 
-          <span>
-            Interview<span className="logo-plus">+</span>
-          </span>
-        </div>
+            sessionStorage.setItem(
+              "pageHistory",
+              JSON.stringify(["home"])
+            );
 
-        <div className="live-status">
-          <span className="live-dot"></span>
-          AI SYSTEM ONLINE
-        </div>
+            sessionStorage.setItem(
+              "currentPage",
+              "home"
+            );
 
-        <nav className="top-nav">
+            setPage("home");
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          }}
+        >
+          <div className="logo">
+
+            <div className="logo-icon">
+              ✦
+            </div>
+
+            <span>
+              Interview
+              <span className="logo-plus">
+                +
+              </span>
+            </span>
+
+          </div>
+        </button>
+
+        <nav
+          className="top-nav"
+          aria-label="Main navigation"
+        >
+
+          <button
+            className="nav-link active"
+            onClick={() =>
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              })
+            }
+          >
+            Home
+          </button>
 
           <button
             className="nav-link"
-            onClick={() => goToPage("login")}
+            onClick={() =>
+              document
+                .getElementById("features")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
           >
-            Sign in
+            Features
+          </button>
+
+          <button
+            className="nav-link"
+            onClick={() =>
+              document
+                .getElementById("how-it-works")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
+          >
+            How It Works
+          </button>
+
+          <button
+            className="nav-link"
+            onClick={() =>
+              document
+                .getElementById("pricing")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
+          >
+            Pricing
+          </button>
+
+          <button
+            className="nav-link"
+            onClick={() =>
+              document
+                .getElementById("about")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
+          >
+            About
+          </button>
+
+        </nav>
+
+        <div className="header-actions">
+
+          <button
+            className="login-btn"
+            onClick={() =>
+              goToPage("login")
+            }
+          >
+            Login
           </button>
 
           <button
             className="workspace-btn"
-            onClick={() => goToPage("login")}
+            onClick={() =>
+              goToPage("login")
+            }
           >
-            Enter Workspace
+            Get Started
             <span>→</span>
           </button>
 
-        </nav>
-      </header>
+        </div>
 
+      </header>
 
       <main>
 
-        {/* HERO COMMAND CENTER */}
-        <section className="command-center">
+        {/* ================= HERO ================= */}
 
-          <div className="intro-panel">
+        <section className="hero-section">
+
+          <div className="hero-copy">
 
             <div className="eyebrow">
               <span>✦</span>
-              AI INTERVIEW COMMAND CENTER
+              AI-POWERED INTERVIEW PRACTICE
             </div>
 
             <h1>
-              Practice smarter.
-              <span>Interview better.</span>
+              Practice Interviews.
+              <span>
+                Build a Better You.
+              </span>
             </h1>
 
-            <p className="intro-description">
-              An adaptive AI interview platform that understands
-              your answers, asks intelligent follow-up questions,
-              and helps you improve with every session.
+            <p className="hero-description">
+              Practice realistic interviews with
+              an adaptive AI that understands your
+              answers, asks intelligent follow-up
+              questions, and helps you improve with
+              every session.
             </p>
 
-            <button
-              className="start-interview"
-              onClick={() => goToPage("login")}
-            >
-              <span className="button-icon">✦</span>
-              Start AI Interview
-              <span className="arrow">→</span>
-            </button>
+            <div className="hero-actions">
+
+              <button
+                className="start-interview"
+                onClick={() =>
+                  goToPage("login")
+                }
+              >
+                <span className="button-icon">
+                  ✦
+                </span>
+
+                Start AI Interview
+
+                <span className="arrow">
+                  →
+                </span>
+              </button>
+
+              <button
+                className="hero-secondary-btn"
+                onClick={() =>
+                  document
+                    .getElementById("ai-demo")
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                    })
+                }
+              >
+                Watch Demo
+                <span>▶</span>
+              </button>
+
+            </div>
 
             <div className="intro-note">
               <span>●</span>
-              Practice privately. Improve continuously.
+              Practice privately. Improve
+              continuously.
+            </div>
+
+            <div className="hero-stats" aria-label="Platform results">
+              <div className="hero-stat">
+                <strong>10K+</strong>
+                <span>Students trained</span>
+              </div>
+              <div className="hero-stat">
+                <strong>95%</strong>
+                <span>User satisfaction</span>
+              </div>
+              <div className="hero-stat">
+                <strong>50+</strong>
+                <span>Interview domains</span>
+              </div>
+              <div className="hero-stat">
+                <strong>80%</strong>
+                <span>Improved confidence</span>
+              </div>
             </div>
 
           </div>
 
+          {/* RIGHT AI VISUAL */}
 
-          {/* AI CORE */}
-          <div className="ai-core-area">
+          <div className="hero-visual-wrap">
 
-            <div className="core-grid"></div>
+            <div className="hero-visual-glow"></div>
 
-            <div className="orbit orbit-one">
-              <span className="orbit-dot orbit-dot-one"></span>
+            <div className="hero-visual-card" id="ai-demo">
+
+              <div className="visual-topbar">
+
+                <div className="visual-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+
+                <div className="visual-title">
+                  AI INTERVIEW SESSION
+                </div>
+
+                <div className="visual-live">
+                  <span></span>
+                  LIVE
+                </div>
+
+              </div>
+
+              <div className="visual-body">
+
+                <div className="visual-profile">
+
+                  <div className="visual-avatar">
+                    ✦
+                  </div>
+
+                  <div>
+                    <strong>
+                      AI Interviewer
+                    </strong>
+
+                    <span>
+                      Technical Round
+                    </span>
+                  </div>
+
+                </div>
+
+                <div className="visual-question">
+
+                  <span>
+                    AI QUESTION
+                  </span>
+
+                  <h3>
+                    Tell me about a project
+                    you are proud of.
+                  </h3>
+
+                </div>
+
+                <div className="visual-answer">
+
+                  <div className="answer-heading">
+                    <span>
+                      YOUR RESPONSE
+                    </span>
+
+                    <small>
+                      01:24
+                    </small>
+                  </div>
+
+                  <p>
+                    I recently built a web
+                    application where I worked
+                    on the frontend and focused
+                    on creating a simple user
+                    experience...
+                  </p>
+
+                </div>
+
+                {/* =================================================
+                    AI METRICS
+                ================================================= */}
+
+                <div className="visual-score-row">
+
+                  <div className="visual-score ai-metric-card">
+
+                    <span>
+                      AI ANALYZING
+                    </span>
+
+                    <strong className="ai-metric-status">
+                      <i className="ai-pulse-dot"></i>
+                      LIVE
+                    </strong>
+
+                  </div>
+
+                  <div className="visual-score ai-metric-card">
+
+                    <span>
+                      ADAPTIVE AI
+                    </span>
+
+                    <strong className="ai-adaptive-icon">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </strong>
+
+                  </div>
+
+                  <div className="visual-score ai-metric-card">
+
+                    <span>
+                      LIVE FEEDBACK
+                    </span>
+
+                    <strong className="ai-wave">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="visual-footer">
+
+                <span>
+                  <i></i>
+                  AI adapts to your answers
+                </span>
+
+                <strong>
+                  ● LIVE ANALYSIS
+                </strong>
+
+              </div>
+
             </div>
 
-            <div className="orbit orbit-two">
-              <span className="orbit-dot orbit-dot-two"></span>
-            </div>
+            {/* =================================================
+                FLOATING AI SCORE ENGINE
+            ================================================= */}
 
-            <div className="orbit orbit-three">
-              <span className="orbit-dot orbit-dot-three"></span>
-            </div>
+            <div className="floating-card floating-score-card">
 
-            <div className="ai-core">
-
-              <div className="core-inner">
+              <div className="floating-ai-orb">
                 <span>✦</span>
               </div>
 
-            </div>
-
-            <div className="core-status">
-              <span className="core-status-dot"></span>
-              AI CORE ACTIVE
-            </div>
-
-            <div className="core-label">
-              <strong>Adaptive Intelligence</strong>
-              <span>Understands • Evaluates • Adapts</span>
-            </div>
-
-          </div>
-
-
-          {/* INTELLIGENCE PANEL */}
-          <aside className="intelligence-panel">
-
-            <div className="panel-header">
-
               <div>
-                <span>LIVE</span>
-                <strong>Interview Intelligence</strong>
-              </div>
 
-              <div className="panel-live">
-                ● LIVE
-              </div>
+                <span>
+                  AI SCORE ENGINE
+                </span>
 
-            </div>
+                <div className="ai-processing-text">
 
+                  <strong>
+                    Analyzing
+                  </strong>
 
-            <div className="main-score">
+                  <div className="processing-dots">
+                    <i></i>
+                    <i></i>
+                    <i></i>
+                  </div>
 
-              <span>AVERAGE PERFORMANCE</span>
-
-              <div className="score-number">
-                <strong>86</strong>
-                <small>/100</small>
-              </div>
-
-              <p>
-                Based on recent practice sessions
-              </p>
-
-            </div>
-
-
-            <div className="intelligence-metrics">
-
-              <div className="metric-item">
-
-                <div className="metric-heading">
-                  <span>Communication</span>
-                  <strong>91</strong>
                 </div>
-
-                <div className="metric-bar">
-                  <span style={{ width: "91%" }}></span>
-                </div>
-
-              </div>
-
-
-              <div className="metric-item">
-
-                <div className="metric-heading">
-                  <span>Technical</span>
-                  <strong>84</strong>
-                </div>
-
-                <div className="metric-bar">
-                  <span style={{ width: "84%" }}></span>
-                </div>
-
-              </div>
-
-
-              <div className="metric-item">
-
-                <div className="metric-heading">
-                  <span>Confidence</span>
-                  <strong>78</strong>
-                </div>
-
-                <div className="metric-bar">
-                  <span style={{ width: "78%" }}></span>
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div className="ai-ready-card">
-
-              <div className="ready-icon">
-                ✦
-              </div>
-
-              <div>
-                <span>AI STATUS</span>
-
-                <strong>
-                  Ready for your interview
-                </strong>
 
                 <p>
-                  Your session will adapt in real time.
+                  Understanding your responses
                 </p>
 
               </div>
 
             </div>
 
-          </aside>
+            {/* =================================================
+                FLOATING AI PROGRESS
+            ================================================= */}
+
+            <div className="floating-card floating-progress-card">
+
+              <div className="progress-heading">
+
+                <span>
+                  YOUR PROGRESS
+                </span>
+
+                <strong>
+                  THIS WEEK
+                </strong>
+
+              </div>
+
+              <div className="progress-score-wrap">
+                <div className="progress-score-ring">
+                  <strong>85%</strong>
+                </div>
+                <span>Interview score</span>
+              </div>
+
+              <p>
+                Keep practicing to improve your score
+              </p>
+
+            </div>
+
+            {/* =================================================
+                FLOATING AI FOLLOW-UP
+            ================================================= */}
+
+            <div className="floating-card floating-ai-card">
+
+              <div className="ai-mini-icon">
+                ✦
+              </div>
+
+              <div>
+
+                <strong>
+                  RESUME ANALYSIS
+                </strong>
+
+                <span className="ai-typing-text">
+                  ATS-ready insights
+
+                  <b>
+                    <i></i>
+                    <i></i>
+                    <i></i>
+                  </b>
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
 
         </section>
 
+        {/* ================= FEATURE STRIP ================= */}
 
-        {/* SESSION SETUP */}
-        <section className="setup-section">
+        <section
+          className="home-feature-strip"
+          id="features"
+        >
+
+          <div className="home-feature">
+
+            <div className="home-feature-icon">
+              ?
+            </div>
+
+            <div>
+              <strong>
+                Realistic Questions
+              </strong>
+
+              <p>
+                Practice role-based and
+                industry-specific questions.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="home-feature">
+
+            <div className="home-feature-icon">
+              ✦
+            </div>
+
+            <div>
+              <strong>
+                AI-Powered Feedback
+              </strong>
+
+              <p>
+                Get instant, detailed feedback
+                on your answers.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="home-feature">
+
+            <div className="home-feature-icon">
+              ↗
+            </div>
+
+            <div>
+              <strong>
+                Track Your Progress
+              </strong>
+
+              <p>
+                Analyze your performance and
+                improve over time.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="home-feature">
+
+            <div className="home-feature-icon">
+              ◎
+            </div>
+
+            <div>
+              <strong>
+                Career Ready
+              </strong>
+
+              <p>
+                Build confidence and prepare
+                for real interviews.
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* ================= STATS ================= */}
+
+        {/* IMPORTANT:
+            Existing AI THINKING section kept exactly same.
+        */}
+
+        <section className="home-ai-thinking">
+
+          <div className="ai-thinking-orb">
+
+            <div className="ai-orb-core">
+              ✦
+            </div>
+
+            <span className="ai-orb-ring ring-one"></span>
+            <span className="ai-orb-ring ring-two"></span>
+            <span className="ai-orb-ring ring-three"></span>
+
+          </div>
+
+          <div className="ai-thinking-content">
+
+            <span className="ai-thinking-label">
+              INTERVIEW+ AI ENGINE
+            </span>
+
+            <h3>
+              AI is ready to understand your interview
+            </h3>
+
+            <p>
+              Questions, answers and feedback are intelligently
+              analyzed to create a personalized interview experience.
+            </p>
+
+            <div className="ai-thinking-status">
+
+              <span className="ai-status-dot"></span>
+
+              <span className="thinking-text">
+                Thinking...
+              </span>
+
+              <span className="thinking-dots">
+                <i></i>
+                <i></i>
+                <i></i>
+              </span>
+
+            </div>
+
+          </div>
+
+          <div className="ai-thinking-side">
+
+            <div className="ai-scan-line"></div>
+
+            <span>
+              ADAPTIVE
+            </span>
+
+            <strong>
+              AI ANALYSIS
+            </strong>
+
+          </div>
+
+        </section>
+
+        {/* ================= PLATFORM FEATURES ================= */}
+
+        <section
+          className="features-section"
+          id="platform-features"
+        >
+
+          <div className="section-heading">
+
+            <div>
+
+              <span className="section-label">
+                YOUR INTERVIEW TOOLKIT
+              </span>
+
+              <h2>
+                Everything you need to get
+                interview-ready.
+              </h2>
+
+            </div>
+
+            <p>
+              Practice, analyse your progress,
+              and prepare for your next
+              opportunity — all in one place.
+            </p>
+
+          </div>
+
+          <div className="features-grid">
+
+            <div className="feature-card feature-card-main">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ✦
+                </div>
+
+                <span className="feature-tag">
+                  AI POWERED
+                </span>
+
+              </div>
+
+              <h3>
+                Mock Interview with AI
+              </h3>
+
+              <p>
+                Practice realistic interview
+                questions, answer naturally,
+                and prepare for your next
+                interview with AI.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("setup")
+                }
+              >
+                Start Mock Interview
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="feature-card">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ▤
+                </div>
+
+                <span className="feature-tag">
+                  RESUME
+                </span>
+
+              </div>
+
+              <h3>
+                Resume Analysis
+              </h3>
+
+              <p>
+                Open your resume workspace
+                to review and improve your
+                resume.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("resume")
+                }
+              >
+                Explore Resume
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="feature-card">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ◫
+                </div>
+
+                <span className="feature-tag">
+                  INSIGHTS
+                </span>
+
+              </div>
+
+              <h3>
+                Performance Report
+              </h3>
+
+              <p>
+                Review your interview results
+                and track your performance.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("results")
+                }
+              >
+                View Reports
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="feature-card">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ◷
+                </div>
+
+                <span className="feature-tag">
+                  YOUR JOURNEY
+                </span>
+
+              </div>
+
+              <h3>
+                Interview History
+              </h3>
+
+              <p>
+                Revisit your previous interview
+                sessions and see your practice
+                journey.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("history")
+                }
+              >
+                View History
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="feature-card">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ◎
+                </div>
+
+                <span className="feature-tag">
+                  KEEP LEARNING
+                </span>
+
+              </div>
+
+              <h3>
+                Practice Mode
+              </h3>
+
+              <p>
+                Build confidence with focused
+                practice before your actual
+                interview.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("practice")
+                }
+              >
+                Start Practicing
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="feature-card">
+
+              <div className="feature-card-top">
+
+                <div className="feature-icon">
+                  ✧
+                </div>
+
+                <span className="feature-tag">
+                  FEEDBACK
+                </span>
+
+              </div>
+
+              <h3>
+                AI Interview Feedback
+              </h3>
+
+              <p>
+                Visit your results to review
+                the feedback available for your
+                interview answers.
+              </p>
+
+              <button
+                className="feature-link"
+                onClick={() =>
+                  requireLogin("results")
+                }
+              >
+                Explore Feedback
+                <span>→</span>
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* ================= SESSION SETUP ================= */}
+
+        <section
+          className="setup-section"
+          id="session-setup"
+        >
 
           <div className="section-heading">
 
@@ -360,102 +1507,110 @@ if (page === "result") {
             </div>
 
             <p>
-              Choose your role and interview style.
-              Our AI handles the rest.
+              Choose your role and interview
+              style. Our AI handles the rest.
             </p>
 
           </div>
-
 
           <div className="setup-grid">
 
             <div className="setup-card">
 
-              <div className="setup-card-top">
-                <div className="setup-card-icon">⌘</div>
-                <span>01</span>
+              <span className="setup-number">
+                01
+              </span>
+
+              <div className="setup-icon">
+                ⌘
               </div>
 
-              <span className="setup-card-label">
+              <span className="setup-label">
                 ROLE
               </span>
 
-              <strong>
+              <h3>
                 Frontend Developer
-              </strong>
+              </h3>
 
               <p>
-                Questions focused on frontend concepts,
-                JavaScript and practical development.
+                Questions tailored to your
+                target role.
               </p>
 
             </div>
 
-
             <div className="setup-card">
 
-              <div className="setup-card-top">
-                <div className="setup-card-icon">◈</div>
-                <span>02</span>
+              <span className="setup-number">
+                02
+              </span>
+
+              <div className="setup-icon">
+                ◈
               </div>
 
-              <span className="setup-card-label">
+              <span className="setup-label">
                 INTERVIEW TYPE
               </span>
 
-              <strong>
+              <h3>
                 Technical Round
-              </strong>
+              </h3>
 
               <p>
-                Conceptual questions mixed with
-                practical problem solving.
+                Practice real technical
+                interview scenarios.
               </p>
 
             </div>
 
-
             <div className="setup-card">
 
-              <div className="setup-card-top">
-                <div className="setup-card-icon">◉</div>
-                <span>03</span>
+              <span className="setup-number">
+                03
+              </span>
+
+              <div className="setup-icon">
+                ◌
               </div>
 
-              <span className="setup-card-label">
+              <span className="setup-label">
                 DIFFICULTY
               </span>
 
-              <strong>
+              <h3>
                 Adaptive
-              </strong>
+              </h3>
 
               <p>
-                AI automatically adjusts difficulty
-                according to your performance.
+                Difficulty changes based on
+                your answers.
               </p>
 
             </div>
 
-
             <div className="setup-card">
 
-              <div className="setup-card-top">
-                <div className="setup-card-icon">10</div>
-                <span>04</span>
+              <span className="setup-number">
+                04
+              </span>
+
+              <div className="setup-icon">
+                ≡
               </div>
 
-              <span className="setup-card-label">
+              <span className="setup-label">
                 QUESTIONS
               </span>
 
-              <strong>
+              <h3>
                 10 Questions
-              </strong>
+              </h3>
 
               <p>
-                A focused interview session designed
-                to take around 15–20 minutes.
+                A focused session designed
+                for practice.
               </p>
 
             </div>
@@ -464,58 +1619,63 @@ if (page === "result") {
 
         </section>
 
+        {/* ================= AI EXPERIENCE ================= */}
 
-        {/* AI EXPERIENCE */}
-        <section className="experience-section">
+        <section
+          className="experience-section"
+          id="how-it-works"
+        >
 
           <div className="section-heading">
 
             <div>
 
               <span className="section-label">
-                HOW THE AI THINKS
+                HOW IT WORKS
               </span>
 
               <h2>
-                Not just questions.
-                <span>Real conversation.</span>
+                More than just questions.
               </h2>
 
             </div>
 
             <p>
-              Your previous answer becomes context
-              for the next question.
+              Your interview changes dynamically
+              as the conversation progresses.
             </p>
 
           </div>
 
-
-          <div className="experience-layout">
+          <div className="experience-grid">
 
             <div className="experience-flow">
 
-              <div className="flow-line"></div>
-
-              <div className="flow-step active">
+              <div className="flow-step">
 
                 <div className="flow-number">
                   01
                 </div>
 
                 <div>
-                  <span>AI ASKS</span>
-                  <strong>Initial Question</strong>
+
+                  <span>
+                    AI ASKS
+                  </span>
+
+                  <h3>
+                    Start with a realistic
+                    question.
+                  </h3>
 
                   <p>
-                    AI starts the interview with
-                    a role-specific question.
+                    The AI begins with questions
+                    relevant to your selected role.
                   </p>
 
                 </div>
 
               </div>
-
 
               <div className="flow-step">
 
@@ -524,18 +1684,23 @@ if (page === "result") {
                 </div>
 
                 <div>
-                  <span>YOU ANSWER</span>
-                  <strong>Your Response</strong>
+
+                  <span>
+                    YOU ANSWER
+                  </span>
+
+                  <h3>
+                    Respond naturally.
+                  </h3>
 
                   <p>
-                    Your answer becomes context
-                    for the AI.
+                    Answer just like you would
+                    in a real interview.
                   </p>
 
                 </div>
 
               </div>
-
 
               <div className="flow-step">
 
@@ -544,18 +1709,23 @@ if (page === "result") {
                 </div>
 
                 <div>
-                  <span>AI ADAPTS</span>
-                  <strong>Follow-up Question</strong>
+
+                  <span>
+                    AI ADAPTS
+                  </span>
+
+                  <h3>
+                    Follow-up questions evolve.
+                  </h3>
 
                   <p>
-                    The next question changes based
-                    on what you said.
+                    Your previous answer influences
+                    what comes next.
                   </p>
 
                 </div>
 
               </div>
-
 
               <div className="flow-step">
 
@@ -564,12 +1734,18 @@ if (page === "result") {
                 </div>
 
                 <div>
-                  <span>AI EVALUATES</span>
-                  <strong>Personal Feedback</strong>
+
+                  <span>
+                    AI EVALUATES
+                  </span>
+
+                  <h3>
+                    Get useful feedback.
+                  </h3>
 
                   <p>
-                    Performance is analyzed and
-                    improvement areas are identified.
+                    Understand your strengths and
+                    areas to improve.
                   </p>
 
                 </div>
@@ -578,98 +1754,102 @@ if (page === "result") {
 
             </div>
 
-
             <div className="conversation-card">
 
-              <div className="conversation-top">
+              <div className="conversation-header">
 
                 <div>
-                  <span>AI INTERVIEW ROOM</span>
-                  <strong>Live Conversation</strong>
+
+                  <span>
+                    AI INTERVIEW ROOM
+                  </span>
+
+                  <strong>
+                    Live Conversation
+                  </strong>
+
                 </div>
 
                 <div className="conversation-live">
+
                   <span></span>
+
                   LIVE
+
                 </div>
 
               </div>
 
+              <div className="conversation-content">
 
-              <div className="conversation-body">
-
-                <div className="conversation-message ai">
+                <div className="conversation-message ai-message">
 
                   <div className="message-avatar">
                     ✦
                   </div>
 
-                  <div className="message-content">
+                  <div className="message-box">
 
-                    <span>AI INTERVIEWER</span>
+                    <span>
+                      AI INTERVIEWER
+                    </span>
 
                     <p>
-                      Tell me about a project you
-                      are proud of.
+                      Can you explain how you
+                      would improve the performance
+                      of a frontend application?
                     </p>
 
                   </div>
 
                 </div>
 
+                <div className="conversation-message user-message">
 
-                <div className="conversation-message user">
+                  <div className="message-box">
 
-                  <div className="message-avatar">
+                    <span>
+                      YOUR ANSWER
+                    </span>
+
+                    <p>
+                      I would start by checking
+                      the application performance
+                      and then optimize unnecessary
+                      renders...
+                    </p>
+
+                  </div>
+
+                  <div className="message-avatar user-avatar">
                     YOU
                   </div>
 
-                  <div className="message-content">
-
-                    <span>YOUR ANSWER</span>
-
-                    <p>
-                      I recently built a web application
-                      where I worked on the frontend
-                      and API integration.
-                    </p>
-
-                  </div>
-
                 </div>
 
+                <div className="conversation-analysis">
 
-                <div className="conversation-message ai">
-
-                  <div className="message-avatar">
+                  <div className="analysis-icon">
                     ✦
                   </div>
 
-                  <div className="message-content">
+                  <div>
 
-                    <span>AI FOLLOW-UP</span>
+                    <span>
+                      AI ANALYSIS
+                    </span>
 
-                    <p>
-                      What was the biggest challenge
-                      you faced while building it?
-                    </p>
+                    <strong>
+                      Follow-up question generated
+                    </strong>
 
                   </div>
 
+                  <div className="analysis-status">
+                    READY
+                  </div>
+
                 </div>
-
-              </div>
-
-
-              <div className="conversation-footer">
-
-                <span>
-                  ✦ AI remembers your previous answer
-                </span>
-
-                <span>
-                  Adaptive follow-up
-                </span>
 
               </div>
 
@@ -679,67 +1859,32 @@ if (page === "result") {
 
         </section>
 
+        {/* ================= USP ================= */}
 
-        {/* USP */}
-        <section className="usp-section">
+        <section
+          className="usp-section"
+          id="about"
+        >
 
-          <div className="usp-heading">
+          <div className="section-heading centered-heading">
 
             <span className="section-label">
-              BUILT DIFFERENTLY
+              BUILT FOR BETTER INTERVIEWS
             </span>
 
             <h2>
-              One interview.
-              <span>
-                Multiple layers of intelligence.
-              </span>
+              Practice with intelligence.
             </h2>
+
+            <p>
+              Every session is designed to give
+              you useful practice, not just more
+              questions.
+            </p>
 
           </div>
 
-
           <div className="usp-grid">
-
-            <div className="usp-card">
-
-              <div className="usp-icon">
-                ✦
-              </div>
-
-              <span>01</span>
-
-              <h3>
-                Context Memory
-              </h3>
-
-              <p>
-                AI remembers what you said instead
-                of treating every question independently.
-              </p>
-
-            </div>
-
-
-            <div className="usp-card">
-
-              <div className="usp-icon">
-                ◈
-              </div>
-
-              <span>02</span>
-
-              <h3>
-                Adaptive Questions
-              </h3>
-
-              <p>
-                Follow-up questions are generated
-                according to your previous response.
-              </p>
-
-            </div>
-
 
             <div className="usp-card">
 
@@ -747,15 +1892,61 @@ if (page === "result") {
                 ◉
               </div>
 
-              <span>03</span>
+              <span>
+                01
+              </span>
+
+              <h3>
+                Context Memory
+              </h3>
+
+              <p>
+                The AI remembers your previous
+                answers throughout the interview.
+              </p>
+
+            </div>
+
+            <div className="usp-card">
+
+              <div className="usp-icon">
+                ✦
+              </div>
+
+              <span>
+                02
+              </span>
+
+              <h3>
+                Adaptive Questions
+              </h3>
+
+              <p>
+                Questions can change according
+                to your responses and selected
+                difficulty.
+              </p>
+
+            </div>
+
+            <div className="usp-card">
+
+              <div className="usp-icon">
+                ◎
+              </div>
+
+              <span>
+                03
+              </span>
 
               <h3>
                 Live Evaluation
               </h3>
 
               <p>
-                Communication, technical understanding
-                and confidence are evaluated continuously.
+                Get structured feedback on
+                communication, technical skills
+                and confidence.
               </p>
 
             </div>
@@ -764,11 +1955,12 @@ if (page === "result") {
 
         </section>
 
+        {/* ================= FINAL CTA ================= */}
 
-        {/* FINAL CTA */}
-        <section className="final-section">
-
-          <div className="final-glow"></div>
+        <section
+          className="final-section"
+          id="pricing"
+        >
 
           <div className="final-content">
 
@@ -777,21 +1969,21 @@ if (page === "result") {
             </span>
 
             <h2>
-              Your next interview
-              <span>starts here.</span>
+              Your next interview starts here.
             </h2>
 
             <p>
-              Practice with AI. Understand your weaknesses.
-              Improve with every interview.
+              Turn practice into confidence with
+              AI-powered interview sessions.
             </p>
 
             <button
               className="final-cta"
-              onClick={() => goToPage("login")}
+              onClick={() =>
+                goToPage("login")
+              }
             >
-              <span>✦</span>
-              Start AI Interview
+              Start Practicing
               <span>→</span>
             </button>
 
@@ -801,27 +1993,44 @@ if (page === "result") {
 
       </main>
 
+      {/* ================= FOOTER ================= */}
 
-      {/* FOOTER */}
       <footer className="footer">
 
-        <div className="footer-logo">
+        <div className="footer-brand">
 
-          <div className="footer-logo-icon">
-            ✦
+          <div className="logo">
+
+            <div className="logo-icon">
+              ✦
+            </div>
+
+            <span>
+              Interview
+              <span className="logo-plus">
+                +
+              </span>
+            </span>
+
           </div>
 
-          Interview<span>+</span>
+          <p>
+            Adaptive AI Interview Platform
+          </p>
 
         </div>
 
-        <p>
-          Adaptive AI Interview Platform
-        </p>
+        <div className="footer-right">
 
-        <span>
-          © 2026 Interview+
-        </span>
+          <span>
+            © 2026 Interview+
+          </span>
+
+          <span>
+            Practice. Improve. Succeed.
+          </span>
+
+        </div>
 
       </footer>
 

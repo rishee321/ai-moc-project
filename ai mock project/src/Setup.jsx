@@ -1,7 +1,8 @@
 import { useState } from "react";
 import "./Setup.css";
+import { apiRequest } from "./api/api";
 
-function Setup({ onStartInterview }) {
+function Setup({ onBack, onStartInterview }) {
 
   const [role, setRole] = useState("Frontend Developer");
   const [type, setType] = useState("Technical");
@@ -9,18 +10,51 @@ function Setup({ onStartInterview }) {
   const [difficulty, setDifficulty] = useState("Adaptive");
   const [questions, setQuestions] = useState("10");
 
-  const handleStartInterview = () => {
-    onStartInterview({
-      role,
-      type,
-      experience,
-      difficulty,
-      questions
-    });
+  const handleStartInterview = async () => {
+    try {
+      const data = await apiRequest("/interviews/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          interview_type: type,
+          domain: role,
+          difficulty: difficulty,
+          total_questions: Number(questions),
+        }),
+      });
+
+      console.log("Interview created:", data);
+
+      onStartInterview({
+        role,
+        type,
+        experience,
+        difficulty,
+        questions,
+        interviewId: data.id,
+      });
+
+    } catch (error) {
+      console.error("Interview creation error:", error);
+      alert(error.message || "Failed to create interview.");
+    }
   };
 
   return (
     <div className="setup-page">
+
+      {/* BACK BUTTON */}
+      {onBack && (
+        <button
+          type="button"
+          className="setup-back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+      )}
 
       {/* HEADER */}
       <header className="setup-header">

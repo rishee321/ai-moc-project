@@ -7,3 +7,4 @@ requests
 email-validator
 bcrypt
 python-jose
+reportlab

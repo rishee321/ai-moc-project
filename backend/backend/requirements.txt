@@ -5,3 +5,4 @@ sqlalchemy
 python-dotenv
 requests
 email-validator
+bcrypt
